@@ -9,6 +9,8 @@
 /[Bb]uilds/
 /[Ll]ogs/
 /[Mm]emoryCaptures/
+/[Uu]serSettings/
+/[Pp]rojectSettings/
 
 # Never ignore Asset meta data
 !/[Aa]ssets/**/*.meta
@@ -61,3 +63,7 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
+
+Assets/SceneDependencyCache.meta
+
+Assets/SceneDependencyCache/
