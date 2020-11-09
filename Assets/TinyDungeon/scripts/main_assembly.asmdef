@@ -1,0 +1,23 @@
+{
+    "name": "main_assembly",
+    "references": [
+        "GUID:734d92eba21c94caba915361bd5ac177",
+        "GUID:e0cd26848372d4e5c891c569017e11f1",
+        "GUID:a5baed0c9693541a5bd947d336ec7659",
+        "GUID:d8b63aba1907145bea998dd612889d6b",
+        "GUID:968008d463443624ba4326838f3e38d2",
+        "GUID:793fa2b5c914d594ea6d9ab913c9af3c",
+        "GUID:8ed1e3067dad7be4c941c7e33cae09a0",
+        "GUID:72d0f99724c9a4cbc9c723339a67d38d",
+        "GUID:ae662df850cc0f04aae0e21f6f1d4613"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
