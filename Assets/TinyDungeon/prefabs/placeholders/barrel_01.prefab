@@ -44,10 +44,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0456c3519affb384595f84f4bfcdfcc2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  radius: 0.5
+  radius: 1
   color: {r: 1, g: 0, b: 0, a: 0.23529412}
   borderColor: {r: 0.043137256, g: 0.92941177, b: 1, a: 0.1764706}
-  thickness: 0.5
+  thickness: 1
 --- !u!114 &-5297213367260036635
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -62,8 +62,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 2
   isActive: 1
-  barrelPrefab: {fileID: 5040737694323276431, guid: c0f5322bc1679864fa264331ec27a0f0, type: 3}
-  damageHandlePosition: {x: 2, y: 0, z: 0}
-  damageRadius: 2
+  barrelPrefab: {fileID: 4163864438358706106, guid: bf52aa58c918d714f9681f60e9bd8415, type: 3}
+  damageHandlePosition: {x: 8.449553, y: -0.2155304, z: 0.9581146}
+  damageRadius: 8.506432
   damageRadiusSolidColor: {r: 1, g: 0.25980264, b: 0.035294116, a: 0.050980393}
   damageRadiusBorderColor: {r: 1, g: 0, b: 0, a: 1}

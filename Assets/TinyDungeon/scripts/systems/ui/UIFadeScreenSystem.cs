@@ -20,10 +20,6 @@ namespace TD
         void SetVisibility(bool isShow)
         {
             Entities.
-#if USE_FOREACH_SYSTEM
-#else
-                WithoutBurst().
-#endif
                 WithEntityQueryOptions(EntityQueryOptions.IncludeDisabled).
                 ForEach((Entity entity, ref UIFadeScreenComponent screen) =>
                 {

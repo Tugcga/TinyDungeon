@@ -45,7 +45,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 0
   isActive: 1
-  ammoPrefab: {fileID: 8433335422443871521, guid: 7d3144e132a029f428f2abfe40750807, type: 3}
+  ammoPrefab: {fileID: 1388608068808381467, guid: c65ad4c4a52fc0f48b6ed42c6a9b8d81, type: 3}
   ammoCount: 2
   labelHeight: 0.71
   handleColor: {r: 0.2783019, g: 0.45610586, b: 1, a: 0.7921569}

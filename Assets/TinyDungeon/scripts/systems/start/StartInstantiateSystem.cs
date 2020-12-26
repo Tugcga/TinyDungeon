@@ -227,10 +227,6 @@ namespace TD
 
             //for simply dynamic instantiated objects
             Entities.
-#if USE_FOREACH_SYSTEM
-#else
-                WithoutBurst().
-#endif
                 WithNone<StartGateIdentifierComponent, StartBarrelIdentifierComponent, StartTowerIdentifierComponent>().
                 WithNone<StartSwitcherIdentifierComponent, StartAmmoIdentifierComponent, StartLevelExitIdentifierComponent>()
                 .ForEach((Entity entity, in StartInstantiateComponent start, in Translation translation, in Rotation rotation) =>

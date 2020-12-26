@@ -14,6 +14,10 @@ namespace TD
             RTreeNavmeshConverter converter = (RTreeNavmeshConverter)target;
             DrawDefaultInspector();
 
+            if (GUILayout.Button("Save navmesh asset"))
+            {
+                converter.SaveNavMeshAsset();
+            }
             if (GUILayout.Button("Convert"))
             {
                 converter.Convert();

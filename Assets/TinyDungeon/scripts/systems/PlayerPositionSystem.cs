@@ -35,26 +35,12 @@ namespace TD
             MovableComponent move = manager.GetComponentData<MovableComponent>(playerEntity);
             RadiusComponent radius = manager.GetComponentData<RadiusComponent>(playerEntity);
             bool isDead = manager.HasComponent<DeadTag>(playerEntity);
-#if USE_FOREACH_SYSTEM
+
             Entities.ForEach((ref PlayerPositionComponent playerPosition) =>
             {
                 playerPosition.position = move.position;
                 playerPosition.isActive = !isDead;
             }).Run();
-#else
-            NativeArray<Entity> entities = playerGroup.ToEntityArray(Allocator.Temp);
-            for(int i = 0; i < entities.Length; i++)
-            {
-                PlayerPositionComponent playerPosition = manager.GetComponentData<PlayerPositionComponent>(entities[i]);
-
-                //actions over entities data
-                playerPosition.position = move.position;
-                playerPosition.isActive = !isDead;
-
-                manager.SetComponentData(entities[i], playerPosition);
-            }
-            entities.Dispose();
-#endif
         }
     }
 }

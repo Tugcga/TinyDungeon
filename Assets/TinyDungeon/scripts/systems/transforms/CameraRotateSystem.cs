@@ -25,10 +25,6 @@ namespace TD
             MouseInputComponent input = GetSingleton<MouseInputComponent>();
 
             Entities.
-#if USE_FOREACH_SYSTEM
-#else
-                WithoutBurst().
-#endif
                 WithNone<CameraBlockRotationTag>().ForEach((ref CameraComponent camera, ref CameraDirectionComponent cameraDirection) =>
             {
                 if (input.isRightPress)

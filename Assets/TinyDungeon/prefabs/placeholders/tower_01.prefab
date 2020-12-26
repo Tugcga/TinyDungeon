@@ -45,10 +45,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0456c3519affb384595f84f4bfcdfcc2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  radius: 0.5
+  radius: 2.63
   color: {r: 1, g: 0.613977, b: 0.2688679, a: 0.25490198}
   borderColor: {r: 0.043137256, g: 0.92941177, b: 1, a: 0.1764706}
-  thickness: 0.5
+  thickness: 1
 --- !u!114 &1622261654424790843
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -61,13 +61,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 846798c61c3626d4d9cf21b2e98cc8dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  searchHandlePosition: {x: 2.9835892, y: 0, z: 1.2280762}
-  distanceHandelPosition: {x: 0, y: 0, z: 10.186826}
-  searchAngle: 1.1889422
-  searchDistance: 10.186826
+  searchHandlePosition: {x: 3.324401, y: 0, z: 1.0426793}
+  distanceHandelPosition: {x: 0, y: 0, z: 30.974419}
+  searchAngle: 1.2670599
+  searchDistance: 30.974419
   discColor: {r: 0.98039216, g: 0.8352941, b: 0.4117647, a: 0.08627451}
-  visibleAngle: 0.7363859
-  visibleHandlePoint: {x: 2.1760743, y: 0, z: 2.4327273}
+  visibleAngle: 0.7629932
+  visibleHandlePoint: {x: 2.4157267, y: 0, z: 2.526475}
   visibleColor: {r: 0.99215686, g: 0.41460747, b: 0.17254904, a: 0.46666667}
 --- !u!114 &2275583808189946575
 MonoBehaviour:
@@ -83,4 +83,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 3
   isActive: 1
-  towerPrefab: {fileID: 8458535931347130708, guid: 35eac0c306ec60a4fab7046fc4f7edb6, type: 3}
+  towerPrefab: {fileID: 7783095675581500157, guid: 290aea92ec3932e42bd02d35b1727d18, type: 3}

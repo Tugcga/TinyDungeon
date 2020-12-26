@@ -22,7 +22,6 @@ namespace TD
             base.OnCreate();
             manager = EntityManager;
             sceneGroup = manager.CreateEntityQuery(typeof(SceneTag));
-            //uiGameGroup = manager.CreateEntityQuery(typeof(UIGameLabelComponent));
 
             firstLoad = false;
             isInitialState = true;
@@ -45,20 +44,15 @@ namespace TD
 
         private void SetGameLabelVisibility(bool isShow)
         {
-            //UnityEngine.Debug.Log("set game ui to " + isShow.ToString());
             UIGlobalStateComponent globalUI = GetSingleton<UIGlobalStateComponent>();
 
             Entities.
                 WithoutBurst().
-                //WithEntityQueryOptions(EntityQueryOptions.IncludeDisabled).
                 WithNone<UIGearValueComponent>().
                 WithAny<UIGameLabelComponent>().
-                //ForEach((Entity entity, ref UIGameLabelComponent startLabel) =>
                 ForEach((Entity entity, ref Translation translation) =>
                 {
-                    //manager.SetEnabled(entity, isShow);
                     translation.Value = new float3(translation.Value.x, translation.Value.y, isShow ? globalUI.activeUIHeight : globalUI.nonActiveUIHeight);
-                    //}).WithStructuralChanges().Run();
                 }).Run();
 
             if(isShow == false)
@@ -66,15 +60,11 @@ namespace TD
                 
                 Entities.
                 WithoutBurst().
-                //WithEntityQueryOptions(EntityQueryOptions.IncludeDisabled).
                 WithAny<UIGearValueComponent>().
-                //ForEach((Entity entity, ref UIGearValueComponent gearLabel) =>
                 ForEach((Entity entity, ref Translation translation) =>
                 {
-                    //manager.SetEnabled(entity, false);
                     translation.Value = new float3(translation.Value.x, translation.Value.y, isShow ? globalUI.activeUIHeight : globalUI.nonActiveUIHeight);
                     globalUI.isGearActive = false;
-                    //}).WithStructuralChanges().Run();
                 }).Run();
                 SetSingleton<UIGlobalStateComponent>(globalUI);
             }

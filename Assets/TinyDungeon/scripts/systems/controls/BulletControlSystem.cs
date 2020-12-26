@@ -24,23 +24,12 @@ namespace TD
 
         protected override void OnUpdate()
         {
-#if USE_FOREACH_SYSTEM
             EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
-#endif
 
             float deltaTime = Time.DeltaTime;
-#if USE_FOREACH_SYSTEM
+
             Entities.WithNone<DestroyBulletTag>().ForEach((Entity entity, ref LineMoveComponent move, in DirectionComponent direction, in BulletComponent bullet) =>
             {
-#else
-            NativeArray<Entity> entities = bulletDirectionGroup.ToEntityArray(Allocator.Temp);
-            for (int i = 0; i < entities.Length; i++)
-            {
-                Entity entity = entities[i];
-                LineMoveComponent move = manager.GetComponentData<LineMoveComponent>(entity);
-                DirectionComponent direction = manager.GetComponentData<DirectionComponent>(entity);
-                BulletComponent bullet = manager.GetComponentData<BulletComponent>(entity);
-#endif
                 move.currentPoint += (new float2(direction.direction.x, direction.direction.y)) * bullet.speed * deltaTime;
 
                 if (!move.isFreeLife)
@@ -48,25 +37,14 @@ namespace TD
                     float2 toEnd = move.endPoint - move.currentPoint;
                     if (math.dot(direction.direction, toEnd) < 0.0)
                     {
-#if USE_FOREACH_SYSTEM
                         cmdBuffer.AddComponent<DestroyBulletTag>(entity);
-#else
-                        manager.AddComponentData(entity, new DestroyBulletTag());
-#endif
                     }
                 }
-#if USE_FOREACH_SYSTEM
             }).Run();
-#else
-                manager.SetComponentData(entity, move);
-            }
-            entities.Dispose();
-#endif
 
-            //next two parts are too different, to union it into ine code
+            //next two parts are too different, to union it into one code
             double time = Time.ElapsedTime;
 
-#if USE_FOREACH_SYSTEM
             Entities.WithAll<DestroyBulletTag>().ForEach((Entity entity, in BulletComponent bullet, in HeightComponent height, in LineMoveComponent move) =>
             {
                 cmdBuffer.DestroyEntity(entity);
@@ -83,28 +61,6 @@ namespace TD
             }).Run();
 
             cmdBuffer.Playback(manager);
-#else
-            NativeArray<Entity> bullets = bulletHeightGroup.ToEntityArray(Allocator.Temp);
-            for (int i = 0; i < bullets.Length; i++)
-            {
-                Entity entity = bullets[i];
-                LineMoveComponent move = manager.GetComponentData<LineMoveComponent>(entity);
-                HeightComponent height = manager.GetComponentData<HeightComponent>(entity);
-                BulletComponent bullet = manager.GetComponentData<BulletComponent>(entity);
-                manager.DestroyEntity(entity);
-                Entity explosion = manager.Instantiate(bullet.explosionPrefab);
-                manager.SetComponentData<LifetimeComponent>(explosion, new LifetimeComponent()
-                {
-                    startTime = time,
-                    lifeTime = bullet.explosionLifetime
-                });
-                manager.SetComponentData<Translation>(explosion, new Translation()
-                {
-                    Value = new float3(move.currentPoint.x, height.Value, move.currentPoint.y)
-                });
-            }
-            bullets.Dispose();
-#endif
         }
     }
 }

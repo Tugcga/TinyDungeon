@@ -4,7 +4,8 @@
         {
             "$type": "Unity.Build.Common.GeneralSettings, Unity.Build",
             "ProductName": "Product Name",
-            "CompanyName": "Company Name"
+            "CompanyName": "Company Name",
+            "Version": "1.0.0"
         },
         {
             "$type": "Unity.Build.Common.SceneList, Unity.Build",
@@ -34,7 +35,7 @@
             },
             "RenderGraphMode": 1,
             "MaxResolution": 2048,
-            "AutoResizeFrame": true,
+            "AutoResizeFrame": false,
             "DisableVsync": false,
             "GPUSkinning": false
         },
@@ -45,6 +46,13 @@
         {
             "$type": "Unity.Build.Common.GraphicsSettings, Unity.Build",
             "ColorSpace": 1
+        },
+        {
+            "$type": "Unity.Entities.Runtime.Build.DotsRuntimeScriptingSettings, Unity.Entities.Runtime.Build",
+            "EnableSafetyChecks": 0,
+            "EnableProfiler": 0,
+            "ScriptingDefines": [],
+            "EnableMultithreading": false
         }
     ]
 }

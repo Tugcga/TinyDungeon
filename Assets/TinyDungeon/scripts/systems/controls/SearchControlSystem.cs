@@ -38,26 +38,11 @@ namespace TD
             //in each tower we use it individual random generator
 
             CollisionMap map = GetSingleton<CollisionMap>();
-#if USE_FOREACH_SYSTEM
+
             EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
             Entities.ForEach((ref SearchPlayerComponent search, ref ShoterComponent shoter, ref RandomComponent random,
                 in TowerComponent tower, in Rotation rotation, in Translation translation, in PlayerPositionComponent playerPosition, in TowerSoundComponent towerSound) =>
             {
-#else
-            NativeArray<Entity> entities = searchGroup.ToEntityArray(Allocator.Temp);
-            for (int i = 0; i < entities.Length; i++)
-            {
-                Entity entity = entities[i];
-                SearchPlayerComponent search = manager.GetComponentData<SearchPlayerComponent>(entity);
-                ShoterComponent shoter = manager.GetComponentData<ShoterComponent>(entity);
-                RandomComponent random = manager.GetComponentData<RandomComponent>(entity);
-                TowerComponent tower = manager.GetComponentData<TowerComponent>(entity);
-                Rotation rotation = manager.GetComponentData<Rotation>(entity);
-                Translation translation = manager.GetComponentData<Translation>(entity);
-                PlayerPositionComponent playerPosition = manager.GetComponentData<PlayerPositionComponent>(entity);
-                TowerSoundComponent towerSound = manager.GetComponentData<TowerSoundComponent>(entity);
-#endif
-
                 TowerState oldState = search.state;
 
                 if (tower.isActive)
@@ -136,18 +121,10 @@ namespace TD
                                 }
                             }
                         }
-
-#if USE_FOREACH_SYSTEM
                         cmdBuffer.SetComponent<TowerLookComponent>(search.rotateObject, new TowerLookComponent()
                         {
                             angle = search.angle,
                         });
-#else
-                        manager.SetComponentData<TowerLookComponent>(search.rotateObject, new TowerLookComponent()
-                        {
-                            angle = search.angle,
-                        });
-#endif
 
                         //check is the player is visible to the tower
                         if (playerPosition.isActive && search.toPlayerdistance < search.visibleDistance && search.isVisiblePlayer)
@@ -198,17 +175,10 @@ namespace TD
                             }
                             else
                             {
-#if USE_FOREACH_SYSTEM
                                 cmdBuffer.SetComponent(search.rotateObject, new TowerLookComponent()
                                 {
                                     angle = search.angle,
                                 });
-#else
-                                manager.SetComponentData(search.rotateObject, new TowerLookComponent()
-                                {
-                                    angle = search.angle,
-                                });
-#endif
                             }
                         }
                     }
@@ -270,7 +240,6 @@ namespace TD
                                 if (time - shoter.shootLastTime > shoter.shootCooldawn && math.abs(search.angle - toAngle) < math.atan(tower.atackTargetRadius / search.toPlayerdistance))
                                 {//shoot
                                     shoter.shootLastTime = time;
-#if USE_FOREACH_SYSTEM
                                     Entity bulletEntity = cmdBuffer.Instantiate(tower.bulletPrefab);
                                     //---can't use entity, because there are too many arguments in the lambda expression. So, no animations here of the shot
                                     //---cmdBuffer.AddComponent<StartAnimationTag>(entity, new StartAnimationTag() { animationIndex = 0 });
@@ -279,21 +248,12 @@ namespace TD
                                     cmdBuffer.SetComponent(flash, new LifetimeComponent() { startTime = time, lifeTime = tower.flashLifetime });
                                     cmdBuffer.AddComponent<LocalToParent>(flash);
                                     cmdBuffer.AddComponent<Parent>(flash, new Parent() { Value = shoter.weaponCorner });
-#else
-                                    Entity bulletEntity = manager.Instantiate(tower.bulletPrefab);
-                                    manager.AddComponentData(entity, new StartAnimationTag() { animationIndex = 0 });
-                                    //instantiate flash
-                                    Entity flash = manager.Instantiate(tower.flashPrefab);
-                                    manager.SetComponentData(flash, new LifetimeComponent() { startTime = time, lifeTime = tower.flashLifetime });
-                                    manager.AddComponent<LocalToParent>(flash);
-                                    manager.AddComponentData<Parent>(flash, new Parent() { Value = shoter.weaponCorner });
-#endif
+
                                     float2 bulletDirection = search.toPlayerDirection + (random.random.NextFloat() * 2 * tower.shotDelta - tower.shotDelta) * (new float2(search.toPlayerDirection.y, -search.toPlayerDirection.x));
                                     bulletDirection = math.normalize(bulletDirection);
                                     quaternion bulletRotation = quaternion.LookRotation(new float3(bulletDirection.x, 0.0f, bulletDirection.y), new float3(0f, 0f, 1f));
 
                                     //set data
-#if USE_FOREACH_SYSTEM
                                     cmdBuffer.SetComponent<Rotation>(bulletEntity, new Rotation() { Value = bulletRotation });
                                     cmdBuffer.SetComponent<DirectionComponent>(bulletEntity, new DirectionComponent()
                                     {
@@ -308,8 +268,7 @@ namespace TD
                                     {
                                         hostPosition = new float2(translation.Value.x, translation.Value.z)
                                     });
-                                    /*float2 bulletPosition = new float2(translation.Value.x, translation.Value.z)
-                                                    + 0.5f * (new float2(bulletDirection.x, bulletDirection.y));*/
+
                                     float2 bulletPosition = new float2(tower.weaponCornerPosition.x, tower.weaponCornerPosition.z);
                                     cmdBuffer.SetComponent<HeightComponent>(bulletEntity, new HeightComponent() { Value = tower.weaponCornerPosition.y});
                                     cmdBuffer.SetComponent<LineMoveComponent>(bulletEntity, new LineMoveComponent()
@@ -325,55 +284,11 @@ namespace TD
                                     });
                                     //play shot sound
                                     cmdBuffer.AddComponent<AudioSourceStart>(towerSound.shotSound);
-#else
-                                    manager.SetComponentData<Rotation>(bulletEntity, new Rotation() { Value = bulletRotation });
-                                    manager.SetComponentData<DirectionComponent>(bulletEntity, new DirectionComponent()
-                                    {
-                                        direction = bulletDirection
-                                    });
-                                    manager.SetComponentData<LifetimeComponent>(bulletEntity, new LifetimeComponent()
-                                    {
-                                        startTime = time,
-                                        lifeTime = tower.bulletLifetime,
-                                    });
-                                    manager.AddComponentData(bulletEntity, new LineMoveInitTag()
-                                    {
-                                        hostPosition = new float2(translation.Value.x, translation.Value.z)
-                                    });
-                                    /*float2 bulletPosition = new float2(translation.Value.x, translation.Value.z)
-                                                    + 0.5f * (new float2(bulletDirection.x, bulletDirection.y));*/
-
-                                    float2 bulletPosition = new float2(tower.weaponCornerPosition.x, tower.weaponCornerPosition.z);
-                                    manager.SetComponentData(bulletEntity, new HeightComponent() { Value = tower.weaponCornerPosition.y});
-
-                                    manager.SetComponentData<LineMoveComponent>(bulletEntity, new LineMoveComponent()
-                                    {
-                                        startPoint = bulletPosition,
-                                        endPoint = bulletPosition,
-                                        currentPoint = bulletPosition,
-                                        isFreeLife = true
-                                    });
-                                    manager.AddComponentData<HostTypeComponent>(bulletEntity, new HostTypeComponent()
-                                    {
-                                        host = HostTypes.HOST_ENEMY
-                                    });
-
-                                    //play shot sound
-                                    manager.AddComponent<AudioSourceStart>(towerSound.shotSound);
-#endif
                                 }
-
-#if USE_FOREACH_SYSTEM
                                 cmdBuffer.SetComponent(search.rotateObject, new TowerLookComponent()
                                 {
                                     angle = search.angle,
                                 });
-#else
-                                manager.SetComponentData(search.rotateObject, new TowerLookComponent()
-                                {
-                                    angle = search.angle,
-                                });
-#endif
                             }
                         }
                     }
@@ -383,32 +298,16 @@ namespace TD
                 if((oldState == TowerState.STATE_WAIT || oldState == TowerState.STATE_SEARCH || oldState == TowerState.STATE_RETURN_TO_SEARCH) 
                     && (search.state == TowerState.STATE_TARGET))
                 {
-#if USE_FOREACH_SYSTEM
                     //---cmdBuffer.AddComponent<AudioSourceStop>(towerSound.alarmSound);  // in web build this sound is still played after destroying the parent entity
-#else
-                    manager.AddComponent<AudioSourceStart>(towerSound.alarmSound);
-#endif
                 }
                 else if((oldState == TowerState.STATE_TARGET) && 
                     (search.state == TowerState.STATE_WAIT || search.state == TowerState.STATE_SEARCH || search.state == TowerState.STATE_RETURN_TO_SEARCH))
                 {
-#if USE_FOREACH_SYSTEM
                     //---cmdBuffer.AddComponent<AudioSourceStop>(towerSound.alarmSound);
-#else
-                    manager.AddComponent<AudioSourceStop>(towerSound.alarmSound);
-#endif
                 }
 
-#if USE_FOREACH_SYSTEM
             }).Run();
             cmdBuffer.Playback(manager);
-#else
-                manager.SetComponentData(entity, search);
-                manager.SetComponentData(entity, shoter);
-                manager.SetComponentData(entity, random);
-            }
-            entities.Dispose();
-#endif
         }
     }
 }

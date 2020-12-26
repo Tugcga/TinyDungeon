@@ -21,7 +21,7 @@ namespace TD
         protected override void OnUpdate()
         {
             CollisionMap map = GetSingleton<CollisionMap>();
-#if USE_FOREACH_SYSTEM
+
             EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
             //for any movable entity we should add component, which contains collision data
             Entities.WithNone<MovableCollisionComponent>().WithNone<BulletComponent>().ForEach((Entity entity, in MovableComponent move) =>
@@ -30,15 +30,6 @@ namespace TD
             }).Run();
 
             cmdBuffer.Playback(manager);
-#else
-            NativeArray<Entity> moves = movableGroup.ToEntityArray(Allocator.Temp);
-            for(int i = 0; i < moves.Length; i++)
-            {
-                manager.AddComponentData(moves[i], new MovableCollisionComponent(map.collisionMap));
-            }
-            
-            moves.Dispose();
-#endif
         }
     }
 }

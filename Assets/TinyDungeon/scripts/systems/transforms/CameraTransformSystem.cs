@@ -12,10 +12,6 @@ namespace TD
         protected override void OnUpdate()
         {
             Entities.
-#if USE_FOREACH_SYSTEM
-#else
-                WithoutBurst().
-#endif
                 ForEach((ref Translation position, ref Rotation rotation, in CameraComponent camera, in PlayerPositionComponent playerPosition) =>
             {
                 float3 newPosition = new float3(playerPosition.position.x + camera.distance * math.cos(camera.positionU) * math.cos(camera.positionV), 

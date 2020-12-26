@@ -29,7 +29,7 @@ namespace TD
         protected override void OnUpdate()
         {
             bool useNavmesh = _useNavmesh;
-#if USE_FOREACH_SYSTEM
+
             Entities.WithNone<DeadTag>().ForEach((ref MovableComponent move, in MovableCollisionComponent collision) =>
             {
                 if (move.isMove)
@@ -45,32 +45,7 @@ namespace TD
                     }
                 }
             }).Run();
-#else
-            NativeArray<Entity> entities = movableGroup.ToEntityArray(Allocator.Temp);
-            //UnityEngine.Debug.Log("movable entities: " + entities.Length.ToString());
-            for(int i = 0; i < entities.Length; i++)
-            {
-                MovableComponent move = manager.GetComponentData<MovableComponent>(entities[i]);
-                MovableCollisionComponent collision = manager.GetComponentData<MovableCollisionComponent>(entities[i]);
-
-                if (useNavmesh)
-                {
-                    CollisionInfo info = collision.GetPoint(move.position, move.nextPosition);
-
-                    //UnityEngine.Debug.Log("i=" + i.ToString() + " set position " + move.position.ToString() + " to " + info.endPoint.ToString() + " from " + move.nextPosition.ToString());
-                    move.position = info.endPoint;
-                }
-                else
-                {
-                    move.position = move.nextPosition;
-                }
-
-                manager.SetComponentData(entities[i], move);
-            }
-            entities.Dispose();
-#endif
         }
-            
     }
 
 }

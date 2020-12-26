@@ -50,7 +50,7 @@ namespace TD
             double time = Time.ElapsedTime;
             //PlayerComponent is singleton, but we use Bursten function for speed up
             Random playerRandom = _playerRandom;
-#if USE_FOREACH_SYSTEM
+
             EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
             Entities.WithNone<DeadTag>().ForEach((
                 ref PlayerComponent player, 
@@ -60,17 +60,6 @@ namespace TD
                 ref PlayerAnimationsComponent playerAnim,
             in PlayerSoundComponent sound) =>
             {
-#else
-            NativeArray<Entity> entitites = playerGroup.ToEntityArray(Allocator.Temp);
-            for (int i = 0; i < entitites.Length; i++)
-            {
-                PlayerComponent player = manager.GetComponentData<PlayerComponent>(entitites[i]);
-                ShoterComponent shoter = manager.GetComponentData<ShoterComponent>(entitites[i]);
-                MovableComponent move = manager.GetComponentData<MovableComponent>(entitites[i]);
-                AmmunitionComponent ammo = manager.GetComponentData<AmmunitionComponent>(entitites[i]);
-                PlayerSoundComponent sound = manager.GetComponentData<PlayerSoundComponent>(entitites[i]);
-                PlayerAnimationsComponent playerAnim = manager.GetComponentData<PlayerAnimationsComponent>(entitites[i]);
-#endif
                 int horizontal = 0;
                 int vertical = 0;
                 if (input.isPressFront)
@@ -111,20 +100,12 @@ namespace TD
                 if(!oldMove && move.isMove)
                 {//start moving
                  //start move sound
-#if USE_FOREACH_SYSTEM
                     cmdBuffer.AddComponent<AudioSourceStart>(sound.moveSound);
-#else
-                    manager.AddComponent<AudioSourceStart>(sound.moveSound);
-#endif
                 }
                 else if(oldMove && !move.isMove)
                 {//finish moving
                     //stop move sound
-#if USE_FOREACH_SYSTEM
                     cmdBuffer.AddComponent<AudioSourceStop>(sound.moveSound);
-#else
-                    manager.AddComponent<AudioSourceStop>(sound.moveSound);
-#endif
                 }
 
                 player.direction = mouseInput.mouseGroundPosition - move.position;
@@ -173,7 +154,6 @@ namespace TD
                         quaternion bulletRotation = quaternion.LookRotation(new float3(player.direction.x, 0.0f, player.direction.y), new float3(0f, 0f, 1f));
 
                         //instantiate the bullet and set it direction
-#if USE_FOREACH_SYSTEM
                         Entity bulletEntity = cmdBuffer.Instantiate(player.bulletPrefab);
                         cmdBuffer.SetComponent<DirectionComponent>(bulletEntity, new DirectionComponent()
                         {
@@ -215,74 +195,15 @@ namespace TD
                         });
                         //play shot sound
                         cmdBuffer.AddComponent<AudioSourceStart>(sound.shotSound);
-#else
-                        Entity bulletEntity = manager.Instantiate(player.bulletPrefab);
-                        manager.SetComponentData<DirectionComponent>(bulletEntity, new DirectionComponent()
-                        {
-                            direction = player.direction
-                        });
-                        manager.SetComponentData<Rotation>(bulletEntity, new Rotation() { Value = bulletRotation });
-                        manager.SetComponentData<LifetimeComponent>(bulletEntity, new LifetimeComponent()
-                        {
-                            startTime = time,
-                            lifeTime = player.bulletLifetime,
-                        });
-                        //instantiate flash
-                        Entity flash = manager.Instantiate(player.shotFlash);
-                        manager.SetComponentData(flash, new LifetimeComponent() {startTime = time, lifeTime = player.flashLifetime });
-                        manager.AddComponent<LocalToParent>(flash);
-                        manager.AddComponentData<Parent>(flash, new Parent() { Value = shoter.weaponCorner });
-                        manager.SetComponentData(flash, new Translation() { Value = new float3(0.0f, 0.0f, 0.0f)});
-                        manager.SetComponentData(flash, new Rotation() { Value = quaternion.EulerXYZ(playerRandom.NextFloat(0.0f, 6.28f), math.PI / 2, 0.0f) });
-
-                        float2 bulletPosition = new float2(weaponCornerPosition.x, weaponCornerPosition.z);
-                        manager.SetComponentData(bulletEntity, new HeightComponent() { Value = weaponCornerPosition.y});
-
-                        manager.AddComponentData(bulletEntity, new LineMoveInitTag()
-                        {
-                            hostPosition = new float2(move.position.x, move.position.y)
-                        });
-
-                        manager.SetComponentData<LineMoveComponent>(bulletEntity, new LineMoveComponent()
-                        {
-                            startPoint = bulletPosition,
-                            endPoint = bulletPosition,
-                            currentPoint = bulletPosition,
-                            isFreeLife = true
-                        });
-                        manager.AddComponentData<HostTypeComponent>(bulletEntity, new HostTypeComponent()
-                        {
-                            host = HostTypes.HOST_PLAYER
-                        });
-
-                        //play shot sound
-                        manager.AddComponent<AudioSourceStart>(sound.shotSound);
-#endif
                     }
                     else
                     {
                         //play miss shot sound
-#if USE_FOREACH_SYSTEM
                         cmdBuffer.AddComponent<AudioSourceStart>(sound.missShotSound);
-#else
-                        manager.AddComponent<AudioSourceStart>(sound.missShotSound);
-#endif
                     }
                 }
-
-#if USE_FOREACH_SYSTEM
             }).Run();
                 cmdBuffer.Playback(manager);
-#else
-                manager.SetComponentData(entitites[i], player);
-                manager.SetComponentData(entitites[i], shoter);
-                manager.SetComponentData(entitites[i], move);
-                manager.SetComponentData(entitites[i], ammo);
-                manager.SetComponentData(entitites[i], playerAnim);
-            }
-
-            entitites.Dispose();
-#endif
         }
     }
 }

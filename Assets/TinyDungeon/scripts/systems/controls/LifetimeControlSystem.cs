@@ -21,7 +21,6 @@ namespace TD
         protected override void OnUpdate()
         {
             double time = Time.ElapsedTime;
-#if USE_FOREACH_SYSTEM
             EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
             Entities.ForEach((Entity entity, in LifetimeComponent life) =>
             {
@@ -31,20 +30,6 @@ namespace TD
                 }
             }).Run();
             cmdBuffer.Playback(manager);
-#else
-            NativeArray<Entity> entities = lifetimeGroup.ToEntityArray(Allocator.Temp);
-            for(int i = 0; i < entities.Length; i++)
-            {
-                Entity entity = entities[i];
-                LifetimeComponent life = manager.GetComponentData<LifetimeComponent>(entity);
-
-                if (time - life.startTime > life.lifeTime)
-                {
-                    manager.DestroyEntity(entity);
-                }
-            }
-            entities.Dispose();
-#endif
         }
     }
 }

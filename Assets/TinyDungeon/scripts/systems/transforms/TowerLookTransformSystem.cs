@@ -11,10 +11,6 @@ namespace TD
         {
             var dt = Time.DeltaTime;
             Entities.
-#if USE_FOREACH_SYSTEM
-#else
-                WithoutBurst().
-#endif
                 ForEach((ref Rotation rotation, in TowerLookComponent look) =>
             {
                 rotation.Value = quaternion.LookRotation(new float3(math.sin(look.angle), 0.0f, math.cos(look.angle)), new float3(0.0f, 1.0f, 0.0f));

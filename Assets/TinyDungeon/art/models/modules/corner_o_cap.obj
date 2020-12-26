@@ -1,0 +1,45 @@
+# XSI Wavefront OBJ Export v3.0
+# File Created: Mon Dec 21 20:52:08 2020
+# XSI Version: 13.0.114.0
+mtllib corner_o_cap.mtl
+
+o corner_o_cap
+# Hierarchy (from self to top father)
+g corner_o_cap
+
+#begin 7 vertices
+v -0.605555 9.995054 0.071329
+v 0.107426 10.003992 -0.639040
+v -0.500000 10.000000 -1.537409
+v -5.000000 10.000000 -0.500000
+v -0.500000 10.000000 -5.000000
+v -5.000000 10.000000 -5.000000
+v -1.537409 10.000000 -0.500000
+#end 7 vertices
+
+#begin 13 normals
+vn -0.002179 0.999993 0.002932
+vn -0.002179 0.999993 0.002932
+vn -0.000726 0.999999 0.000977
+vn -0.000726 0.999999 0.000977
+vn 0.000000 1.000000 0.000000
+vn 0.000000 1.000000 0.000000
+vn -0.000726 0.999999 0.000977
+vn -0.000726 0.999999 0.000977
+vn 0.000000 1.000000 0.000000
+vn -0.000726 0.999999 0.000977
+vn 0.000000 1.000000 0.000000
+vn -0.000726 0.999999 0.000977
+vn 0.000000 1.000000 0.000000
+#end 13 vertex normals
+
+#begin 4 faces
+usemtl scene_material
+f 1//1 2//2 3//3 7//4 
+usemtl scene_material
+f 5//5 6//6 3//7 
+usemtl scene_material
+f 3//8 6//9 7//10 
+usemtl scene_material
+f 4//11 7//12 6//13 
+#end 4 faces

@@ -15,10 +15,6 @@ namespace TD
         {
             //in fact PlayerComponent is singleton, but here we use Bursted function
             Entities.
-#if USE_FOREACH_SYSTEM
-#else
-                WithoutBurst().
-#endif
                 WithNone<DeadTag>().ForEach((ref Translation translation, ref Rotation rotation, in PlayerComponent player, in MovableComponent move) =>
             {
                 translation.Value = new float3(move.position.x, 0f, move.position.y);

@@ -19,10 +19,6 @@ namespace TD
         {
             EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
             Entities.
-#if USE_FOREACH_SYSTEM
-#else
-                WithoutBurst().
-#endif
                 ForEach((Entity entity, ref PlayerAnimationsComponent playerAnim) =>
                 {
                     if(playerAnim.newAimation != playerAnim.currentAnimation)

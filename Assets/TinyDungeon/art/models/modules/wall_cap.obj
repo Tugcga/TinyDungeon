@@ -1,0 +1,44 @@
+# XSI Wavefront OBJ Export v3.0
+# File Created: Mon Dec 21 20:46:24 2020
+# XSI Version: 13.0.114.0
+mtllib wall_cap.mtl
+
+o wall_cap
+# Hierarchy (from self to top father)
+g wall_cap
+
+#begin 6 vertices
+v -5.000000 10.000000 -0.500000
+v 5.000000 10.000000 -0.500000
+v 5.000000 10.000000 -5.000000
+v -5.000000 10.000000 -5.000000
+v 5.000000 0.000000 -5.000000
+v -5.000000 0.000000 -5.000000
+#end 6 vertices
+
+#begin 8 normals
+vn 0.000000 1.000000 0.000000
+vn 0.000000 1.000000 0.000000
+vn 0.000000 1.000000 0.000000
+vn 0.000000 1.000000 0.000000
+vn -0.000000 0.000000 -1.000000
+vn -0.000000 0.000000 -1.000000
+vn 0.000000 0.000000 -1.000000
+vn 0.000000 0.000000 -1.000000
+#end 8 vertex normals
+
+#begin texture vertices
+vt 0.000000 1.000000 0.000000
+vt 1.000000 1.000000 0.000000
+vt 1.000000 1.000000 0.000000
+vt 0.000000 1.000000 0.000000
+vt 1.000000 1.000000 0.000000
+vt 0.000000 1.000000 0.000000
+#end 6 texture vertices
+
+#begin 2 faces
+usemtl scene_material
+f 1/1/1 2/2/2 3/3/3 4/4/4 
+usemtl scene_material
+f 4/4/5 3/3/6 5/5/7 6/6/8 
+#end 2 faces

@@ -28,10 +28,6 @@ namespace TD
             double time = Time.ElapsedTime;
             float shift = collisionThickness;
             Entities.
-#if USE_FOREACH_SYSTEM
-#else
-                WithoutBurst().
-#endif
                 WithNone<DestroyBulletTag>().WithAll<LineMoveInitTag>().ForEach((Entity entity, ref LineMoveComponent move, in BulletComponent bullet, in LineMoveInitTag init, in DirectionComponent direction, in LifetimeComponent lifetime) =>
             {
                 //check, is there are any collisions between host position and emited position

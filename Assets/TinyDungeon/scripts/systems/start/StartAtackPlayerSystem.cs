@@ -24,10 +24,6 @@ namespace TD
         {
             EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
             Entities.
-#if USE_FOREACH_SYSTEM
-#else
-                WithoutBurst().
-#endif
                 ForEach((Entity entity, ref SearchPlayerComponent search, in TowerComponent tower, in StartAtackPlayerTag atack) =>
             {
                 if(tower.isActive)
