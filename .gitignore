@@ -65,5 +65,8 @@ crashlytics-build.properties
 
 
 Assets/SceneDependencyCache.meta
+Assets/GlobalEntitiesDependencies.meta
+Assets/TextMesh Pro.meta
 
 Assets/SceneDependencyCache/
+Assets/GlobalEntitiesDependencies
