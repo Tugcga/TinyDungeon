@@ -14,6 +14,7 @@ namespace TD
         EntityQuery towersStartGroup;
         EntityQuery switchersStartGroup;
         EntityQuery ammosStartGroup;
+        EntityQuery exitsStartGroup;
 
         //Random random;
 
@@ -26,6 +27,7 @@ namespace TD
             towersStartGroup = manager.CreateEntityQuery(typeof(StartTowerIdentifierComponent), typeof(StartInstantiateComponent), typeof(Translation), typeof(Rotation));
             switchersStartGroup = manager.CreateEntityQuery(typeof(StartSwitcherIdentifierComponent), typeof(StartInstantiateComponent), typeof(Translation), typeof(Rotation));
             ammosStartGroup = manager.CreateEntityQuery(typeof(StartAmmoIdentifierComponent), typeof(StartInstantiateComponent), typeof(Translation), typeof(Rotation));
+            exitsStartGroup = manager.CreateEntityQuery(typeof(StartLevelExitIdentifierComponent), typeof(StartInstantiateComponent), typeof(Translation), typeof(Rotation));
 
             //random = new Random(3);  // this random also different for different entities
 
@@ -68,6 +70,12 @@ namespace TD
             {
                 startAmmo = manager.GetComponentData<StartAmmoIdentifierComponent>(e);
             }
+            bool hasExit = manager.HasComponent<StartLevelExitIdentifierComponent>(e);
+            StartLevelExitIdentifierComponent startExit = new StartLevelExitIdentifierComponent();
+            if (hasExit)
+            {
+                startExit = manager.GetComponentData<StartLevelExitIdentifierComponent>(e);
+            }
 
             //as in simple case, instntiate geometry
             Entity newEntity = manager.Instantiate(start.prefab);
@@ -90,7 +98,7 @@ namespace TD
                 {//this node contains collision edge
                     if (hasGate && node.property.colliderType == ColliderType.COLLIDER_GATE)
                     {
-                        
+
                         if (node.property.colliderHostColor == startGate.gateColor && node.property.colliderHostIndex == startGate.gateIndex)
                         {
                             map.nodes[i].property.isActive = startGate.isActiveGate;
@@ -98,9 +106,9 @@ namespace TD
                             position++;
                         }
                     }
-                    else if(hasbarrel && node.property.colliderType == ColliderType.COLLIDER_BARELL)
+                    else if (hasbarrel && node.property.colliderType == ColliderType.COLLIDER_BARELL)
                     {
-                        if(node.property.colliderHostIndex == startBarrel.barrelIndex)
+                        if (node.property.colliderHostIndex == startBarrel.barrelIndex)
                         {
                             map.nodes[i].property.isActive = startBarrel.isActive;
                             indexes[position] = node.index;
@@ -122,8 +130,9 @@ namespace TD
             {
                 indexes[i] = 0;
             }
+
             //we should set indexes only for collideble items
-            if(hasGate || hasbarrel || hasTower)
+            if (hasGate || hasbarrel || hasTower)
             {
                 manager.SetComponentData(newEntity, new CollisionEdgesSetComponent(indexes[0], indexes[1], indexes[2], indexes[3], indexes[4], indexes[5], indexes[6], indexes[7]));
             }
@@ -131,31 +140,27 @@ namespace TD
             //set type component to the new entity
             if(hasGate)
             {
-                manager.SetComponentData(newEntity, new GateComponent()
-                {
-                    gateColor = startGate.gateColor,
-                    isActive = startGate.isActiveGate
-                });
+                GateComponent gate = manager.GetComponentData<GateComponent>(newEntity);
+                gate.gateColor = startGate.gateColor;
+                gate.isActive = startGate.isActiveGate;
+                manager.SetComponentData(newEntity, gate);
 
                 //play animation to open or close the gate
                 if(startGate.isActiveGate)
                 {
                     manager.AddComponentData(newEntity, new StartAnimationTag() { animationIndex = 1});
-                    //Helper.SelectClipAtIndex(World, newEntity, 1);
                 }
                 else
                 {
                     manager.AddComponentData(newEntity, new StartAnimationTag() { animationIndex = 0 });
-                    //Helper.SelectClipAtIndex(World, newEntity, 0);
                 }
-                //TinyAnimation.Play(World, newEntity);
             }
             else if(hasbarrel)
             {
-                manager.SetComponentData(newEntity, new BarrelComponent()
-                {
-                    isActive = startBarrel.isActive
-                });
+                BarrelComponent barrel = manager.GetComponentData<BarrelComponent>(newEntity);
+                barrel.isActive = startBarrel.isActive;
+                manager.SetComponentData(newEntity, barrel);
+
                 ExplodedItemComponent exp = manager.GetComponentData<ExplodedItemComponent>(newEntity);
                 exp.damageRadius = startBarrel.damageRadius;
                 manager.SetComponentData(newEntity, exp);
@@ -202,6 +207,14 @@ namespace TD
                 manager.SetComponentData(newEntity, ammo);
                 manager.AddComponentData(newEntity, new Scale() { Value = 1.0f});  // we need scale for animator
             }
+            else if(hasExit)
+            {
+                LevelExitComponent exit = manager.GetComponentData<LevelExitComponent>(newEntity);
+                exit.levelIndex = startExit.levelIndex;
+                exit.activeRadius = startExit.activeRadius;
+
+                manager.SetComponentData(newEntity, exit);
+            }
             indexes.Dispose();
 
             return newEntity;
@@ -213,8 +226,13 @@ namespace TD
             ref CollisionMapBlobAsset map = ref GetSingleton<CollisionMap>().collisionMap.Value;
 
             //for simply dynamic instantiated objects
-            Entities.WithNone<StartGateIdentifierComponent, StartBarrelIdentifierComponent, StartTowerIdentifierComponent>().
-                WithNone<StartSwitcherIdentifierComponent, StartAmmoIdentifierComponent>()
+            Entities.
+#if USE_FOREACH_SYSTEM
+#else
+                WithoutBurst().
+#endif
+                WithNone<StartGateIdentifierComponent, StartBarrelIdentifierComponent, StartTowerIdentifierComponent>().
+                WithNone<StartSwitcherIdentifierComponent, StartAmmoIdentifierComponent, StartLevelExitIdentifierComponent>()
                 .ForEach((Entity entity, in StartInstantiateComponent start, in Translation translation, in Rotation rotation) =>
             {
                 Entity newEntity = cmdBuffer.Instantiate(start.prefab);
@@ -238,7 +256,7 @@ namespace TD
                 Entity e = gates[g];
                 ItemProcess(e, ref map);
 
-                manager.DestroyEntity(e);
+                cmdBuffer.DestroyEntity(e);
             }
             //}).Run();
             gates.Dispose();
@@ -249,7 +267,7 @@ namespace TD
                 Entity e = barrels[b];
                 ItemProcess(e, ref map);
 
-                manager.DestroyEntity(e);
+                cmdBuffer.DestroyEntity(e);
             }
             barrels.Dispose();
 
@@ -259,7 +277,7 @@ namespace TD
                 Entity e = towers[t];
                 Entity newEntity = ItemProcess(e, ref map);
 
-                manager.DestroyEntity(e);
+                cmdBuffer.DestroyEntity(e);
             }
             towers.Dispose();
 
@@ -269,7 +287,7 @@ namespace TD
                 Entity e = switchers[s];
                 Entity newEntity = ItemProcess(e, ref map);
 
-                manager.DestroyEntity(e);
+                cmdBuffer.DestroyEntity(e);
             }
             switchers.Dispose();
 
@@ -279,11 +297,21 @@ namespace TD
                 Entity e = ammoms[a];
                 Entity newEntity = ItemProcess(e, ref map);
 
-                manager.DestroyEntity(e);
+                cmdBuffer.DestroyEntity(e);
             }
             ammoms.Dispose();
 
-            cmdBuffer.Playback(EntityManager);
+            NativeArray<Entity> exits = exitsStartGroup.ToEntityArray(Allocator.TempJob);
+            for (int e = 0; e < exits.Length; e++)
+            {
+                Entity exit = exits[e];
+                Entity newEntity = ItemProcess(exit, ref map);
+
+                cmdBuffer.DestroyEntity(exit);
+            }
+            exits.Dispose();
+
+            cmdBuffer.Playback(manager);
         }
     }
 }

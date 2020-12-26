@@ -31,5 +31,6 @@ namespace TD
 
         public double lastActionTime;
         public float actionCooldawn;
+        public Entity soundAction;
     }
 }

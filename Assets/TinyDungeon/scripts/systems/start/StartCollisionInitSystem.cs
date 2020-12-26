@@ -7,21 +7,21 @@ namespace TD
 {
     public class StartCollisionInitSystem : SystemBase
     {
-        //EntityQuery movableGroup;
-        //EntityManager manager;
+        EntityQuery movableGroup;
+        EntityManager manager;
 
         protected override void OnCreate()
         {
             base.OnCreate();
-            //manager = World.EntityManager;
-            //movableGroup = manager.CreateEntityQuery(typeof(MovableComponent), ComponentType.Exclude<MovableCollisionComponent>(), ComponentType.Exclude<BulletComponent>());
+            manager = World.EntityManager;
+            movableGroup = manager.CreateEntityQuery(typeof(MovableComponent), ComponentType.Exclude<MovableCollisionComponent>(), ComponentType.Exclude<BulletComponent>());
             RequireSingletonForUpdate<CollisionMap>();
         }
 
         protected override void OnUpdate()
         {
             CollisionMap map = GetSingleton<CollisionMap>();
-
+#if USE_FOREACH_SYSTEM
             EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
             //for any movable entity we should add component, which contains collision data
             Entities.WithNone<MovableCollisionComponent>().WithNone<BulletComponent>().ForEach((Entity entity, in MovableComponent move) =>
@@ -29,7 +29,16 @@ namespace TD
                 cmdBuffer.AddComponent(entity, new MovableCollisionComponent(map.collisionMap));
             }).Run();
 
-            cmdBuffer.Playback(EntityManager);
+            cmdBuffer.Playback(manager);
+#else
+            NativeArray<Entity> moves = movableGroup.ToEntityArray(Allocator.Temp);
+            for(int i = 0; i < moves.Length; i++)
+            {
+                manager.AddComponentData(moves[i], new MovableCollisionComponent(map.collisionMap));
+            }
+            
+            moves.Dispose();
+#endif
         }
     }
 }

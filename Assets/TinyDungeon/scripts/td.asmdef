@@ -1,5 +1,5 @@
 {
-    "name": "main_assembly",
+    "name": "td",
     "references": [
         "GUID:734d92eba21c94caba915361bd5ac177",
         "GUID:e0cd26848372d4e5c891c569017e11f1",
@@ -9,7 +9,10 @@
         "GUID:793fa2b5c914d594ea6d9ab913c9af3c",
         "GUID:8ed1e3067dad7be4c941c7e33cae09a0",
         "GUID:72d0f99724c9a4cbc9c723339a67d38d",
-        "GUID:ae662df850cc0f04aae0e21f6f1d4613"
+        "GUID:5f3cf485eb0554709a8abbeace890c86",
+        "GUID:c7540cc825d765943a3df00624ed16d9",
+        "GUID:a05615732b4d930479a696617db6ac6d",
+        "GUID:823a9de53b0fe98429d6dedf237f2348"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

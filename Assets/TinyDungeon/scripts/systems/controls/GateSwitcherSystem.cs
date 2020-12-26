@@ -2,7 +2,7 @@
 using Unity.Collections;
 using Unity.Transforms;
 using Unity.Mathematics;
-using Unity.Tiny.Animation;
+using Unity.Tiny.Audio;
 
 namespace TD
 {
@@ -11,7 +11,8 @@ namespace TD
     {
         EntityQuery switchersGroup;
         EntityQuery gatesGroup;
-        //EntityQuery lineMovesGroup;
+        EntityQuery bulletGroup;
+
         EntityManager manager;
 
         protected override void OnCreate()
@@ -20,7 +21,8 @@ namespace TD
             manager = World.EntityManager;
             switchersGroup = manager.CreateEntityQuery(typeof(GateSwitcherComponent), ComponentType.ReadOnly<PlayerPositionComponent>(), ComponentType.ReadOnly<Translation>());
             gatesGroup = manager.CreateEntityQuery(typeof(GateComponent), typeof(CollisionEdgesSetComponent));
-            //lineMovesGroup = manager.CreateEntityQuery(typeof(LineMoveComponent), typeof(BulletComponent), ComponentType.Exclude<DestroyBulletTag>(), ComponentType.Exclude<LineMoveInitTag>());
+            bulletGroup = manager.CreateEntityQuery(typeof(BulletComponent), typeof(LineMoveComponent), ComponentType.Exclude<DestroyBulletTag>(), ComponentType.Exclude<LineMoveInitTag>());
+
             RequireSingletonForUpdate<CollisionMap>();
             RequireSingletonForUpdate<KeyboardInputComponent>();
         }
@@ -40,23 +42,47 @@ namespace TD
                 //geather all gates by it color
                 //key - color
                 NativeMultiHashMap<int, GateData> gatesMap = new NativeMultiHashMap<int, GateData>(gatesGroup.CalculateEntityCount(), Allocator.TempJob);
+#if USE_FOREACH_SYSTEM
                 Entities.ForEach((Entity entity, in GateComponent gate, in CollisionEdgesSetComponent edges) =>
                 {
-                    gatesMap.Add((int)gate.gateColor, new GateData() 
-                    { 
+#else
+                NativeArray<Entity> gates = gatesGroup.ToEntityArray(Allocator.Temp);
+                for (int i = 0; i < gates.Length; i++)
+                {
+                    Entity entity = gates[i];
+                    GateComponent gate = manager.GetComponentData<GateComponent>(entity);
+                    CollisionEdgesSetComponent edges = manager.GetComponentData<CollisionEdgesSetComponent>(entity);
+#endif
+                    gatesMap.Add((int)gate.gateColor, new GateData()
+                    {
                         entity = entity,
                         gate = gate,
                         indexes = edges
                     });
+#if USE_FOREACH_SYSTEM
                 }).Run();
+#else
+                }
+                gates.Dispose();
+#endif
 
                 //next iterate throw all switchers and find the close to the player
                 double time = Time.ElapsedTime;
-                EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
                 CollisionMap map = GetSingleton<CollisionMap>();
                 bool updateBullets = false;
+#if USE_FOREACH_SYSTEM
+                EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
                 Entities.ForEach((Entity entity, ref GateSwitcherComponent switcher, in PlayerPositionComponent playerPos, in Translation swCenter) =>
                 {
+#else
+                NativeArray<Entity> switchers = switchersGroup.ToEntityArray(Allocator.Temp);
+                for (int i = 0; i < switchers.Length; i++)
+                {
+                    Entity entity = switchers[i];
+                    GateSwitcherComponent switcher = manager.GetComponentData<GateSwitcherComponent>(entity);
+                    PlayerPositionComponent playerPos = manager.GetComponentData<PlayerPositionComponent>(entity);
+                    Translation swCenter = manager.GetComponentData<Translation>(entity);
+#endif
                     if (switcher.isActive && time - switcher.lastActionTime > switcher.actionCooldawn && playerPos.isActive && math.distancesq(playerPos.position, new float2(swCenter.Value.x, swCenter.Value.z)) < switcher.radius * switcher.radius)
                     {
                         switcher.lastActionTime = time;
@@ -70,17 +96,19 @@ namespace TD
                             {
                                 //change the state of the gate
                                 //play animation, for example
-                                if (currentGate.gate.isActive)
-                                {
-                                    cmdBuffer.AddComponent(currentGate.entity, new StartAnimationTag() { animationIndex = 0 });
-                                    //Helper.SelectClipAtIndex(World, currentGate.entity, 0);  // 0 - open
-                                }
-                                else
-                                {
-                                    cmdBuffer.AddComponent(currentGate.entity, new StartAnimationTag() { animationIndex = 1 });
-                                    //Helper.SelectClipAtIndex(World, currentGate.entity, 1);  // 1 - close
-                                }
-                                //TinyAnimation.Play(World, currentGate.entity);
+#if USE_FOREACH_SYSTEM
+                                cmdBuffer.AddComponent(currentGate.entity, new StartAnimationTag() { animationIndex = currentGate.gate.isActive ? 0 : 1});  // 0 - open
+                                cmdBuffer.AddComponent<AudioSourceStart>(switcher.soundAction);
+                                cmdBuffer.AddComponent(entity, new StartAnimationTag() { animationIndex = 0 });
+                                cmdBuffer.AddComponent<AudioSourceStart>(currentGate.gate.soundOpenClose);
+#else
+                                manager.AddComponentData(currentGate.entity, new StartAnimationTag() { animationIndex = currentGate.gate.isActive ? 0 : 1 });  // 0 - open, 1 - close
+                                manager.AddComponent<AudioSourceStart>(switcher.soundAction);  // play action sound
+                                //also start switcher animation
+                                manager.AddComponentData(entity, new StartAnimationTag() { animationIndex = 0 });
+                                //gate sound
+                                manager.AddComponent<AudioSourceStart>(currentGate.gate.soundOpenClose);
+#endif
 
                                 //and disable the collision edges
                                 if (currentGate.gate.isActive)
@@ -92,19 +120,30 @@ namespace TD
                                     map.collisionMap.Value.Activate(currentGate.indexes);
                                 }
                                 currentGate.gate.isActive = !currentGate.gate.isActive;
+#if USE_FOREACH_SYSTEM
                                 cmdBuffer.SetComponent(currentGate.entity, currentGate.gate);
+#else
+                                manager.SetComponentData(currentGate.entity, currentGate.gate);
+#endif
 
                                 updateBullets = true;
                             }
                             while (gatesMap.TryGetNextValue(out currentGate, ref iterator));
                         }
                     }
+#if USE_FOREACH_SYSTEM
                 }).Run();
+#else
+                    manager.SetComponentData(entity, switcher);
+                }
+                switchers.Dispose();
+#endif
 
                 gatesMap.Dispose();
 
                 if (updateBullets)
                 {
+#if USE_FOREACH_SYSTEM
                     Entities.WithAll<BulletComponent>().WithNone<DestroyBulletTag, LineMoveInitTag>().ForEach((Entity entity, in LineMoveComponent move) =>
                     {
                         cmdBuffer.AddComponent(entity, new LineMoveInitTag()
@@ -112,86 +151,25 @@ namespace TD
                             hostPosition = move.currentPoint
                         });
                     }).Run();
-                }
-
-                cmdBuffer.Playback(manager);
-            }
-
-            /*ref CollisionMapBlobAsset map = ref GetSingleton<CollisionMap>().collisionMap.Value;
-            KeyboardInputComponent keyboard = GetSingleton<KeyboardInputComponent>();
-
-            bool updateBullets = false;
-            double time = Time.ElapsedTime;
-
-            if(keyboard.isPressAction)
-            {
-                NativeArray<Entity> gates = gatesGroup.ToEntityArray(Allocator.TempJob);
-                NativeArray<Entity> switchers = switchersGroup.ToEntityArray(Allocator.TempJob);
-                for (int i = 0; i < switchers.Length; i++)
-                {
-                    Entity e = switchers[i];
-                    PlayerPositionComponent playerPos = manager.GetComponentData<PlayerPositionComponent>(e);
-                    GateSwitcherComponent switcher = manager.GetComponentData<GateSwitcherComponent>(e);
-                    Translation swCenter = manager.GetComponentData<Translation>(e);
-
-                    if (switcher.isActive && time - switcher.lastActionTime > switcher.actionCooldawn && playerPos.isActive && math.distancesq(playerPos.position, new float2(swCenter.Value.x, swCenter.Value.z)) < switcher.radius * switcher.radius)
-                    {//active player press action near the switcher
-                        switcher.lastActionTime = time;
-                        //we should change the state of all gates with a switcher color
-                        for (int g = 0; g < gates.Length; g++)
-                        {
-                            Entity gate = gates[g];
-                            GateComponent gData = manager.GetComponentData<GateComponent>(gate);
-                            if(gData.gateColor == switcher.gateColor)
-                            {
-                                //change the state of the gate
-                                //play animation, for example
-                                if(gData.isActive)
-                                {
-                                    Helper.SelectClipAtIndex(World, gate, 0);  // 0 - open
-                                }
-                                else
-                                {
-                                    Helper.SelectClipAtIndex(World, gate, 1);  // 1 - close
-                                }
-                                TinyAnimation.Play(World, gate);
-
-                                //and disable the collision edges
-                                CollisionEdgesSetComponent indexes = manager.GetComponentData<CollisionEdgesSetComponent>(gate);
-                                if (gData.isActive)
-                                {
-                                    map.Deactivate(indexes);
-                                }
-                                else
-                                {
-                                    map.Activate(indexes);
-                                }
-                                gData.isActive = !gData.isActive;
-                                manager.SetComponentData(gate, gData);
-                                updateBullets = true;
-                            }
-                        }
-
-                        manager.SetComponentData(e, switcher);
-                    }
-                }
-                switchers.Dispose();
-                gates.Dispose();
-            }
-
-            if(updateBullets)
-            {
-                EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
-                Entities.WithAll<BulletComponent>().WithNone<DestroyBulletTag, LineMoveInitTag>().ForEach((Entity entity, in LineMoveComponent move) =>
-                {
-                    cmdBuffer.AddComponent(entity, new LineMoveInitTag()
+#else
+                    NativeArray<Entity> bullets = bulletGroup.ToEntityArray(Allocator.Temp);
+                    for(int i = 0; i < bullets.Length; i++)
                     {
-                        hostPosition = move.currentPoint
-                    });
-                }).Run();
+                        Entity entity = bullets[i];
+                        LineMoveComponent move = manager.GetComponentData<LineMoveComponent>(entity);
 
+                        manager.AddComponentData(entity, new LineMoveInitTag()
+                        {
+                            hostPosition = move.currentPoint
+                        });
+                    }
+                    bullets.Dispose();
+#endif
+                }
+#if USE_FOREACH_SYSTEM
                 cmdBuffer.Playback(manager);
-            }*/
+#endif
+            }
         }
     }
 }

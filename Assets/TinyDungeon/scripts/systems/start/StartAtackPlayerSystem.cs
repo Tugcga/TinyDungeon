@@ -12,15 +12,23 @@ namespace TD
      */
     public class StartAtackPlayerSystem : SystemBase
     {
+        EntityManager manager;
+
         protected override void OnCreate()
         {
+            manager = World.EntityManager;
             base.OnCreate();
         }
 
         protected override void OnUpdate()
         {
             EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
-            Entities.ForEach((Entity entity, ref SearchPlayerComponent search, in TowerComponent tower, in StartAtackPlayerTag atack) =>
+            Entities.
+#if USE_FOREACH_SYSTEM
+#else
+                WithoutBurst().
+#endif
+                ForEach((Entity entity, ref SearchPlayerComponent search, in TowerComponent tower, in StartAtackPlayerTag atack) =>
             {
                 if(tower.isActive)
                 {
@@ -30,7 +38,7 @@ namespace TD
                 cmdBuffer.RemoveComponent<StartAtackPlayerTag>(entity);
 
             }).Run();
-            cmdBuffer.Playback(EntityManager);
+            cmdBuffer.Playback(manager);
         }
     }
 }

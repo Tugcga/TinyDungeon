@@ -11,5 +11,8 @@ namespace TD
 
         public float speed;
         public float2 direction;
+
+        public Entity shotFlash;
+        public float flashLifetime;
     }
 }

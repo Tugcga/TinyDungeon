@@ -9,5 +9,7 @@ namespace TD
         //public Entity bulletPrefab;
         public double shootLastTime;
         public float shootCooldawn;
+
+        public Entity weaponCorner;
     }
 }

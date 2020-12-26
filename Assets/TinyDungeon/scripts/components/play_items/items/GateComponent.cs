@@ -7,7 +7,8 @@ namespace TD
     public struct GateComponent : IComponentData
     {
         public GateColors gateColor;
-        //public int gateIndex;
         public bool isActive;
+
+        public Entity soundOpenClose;
     }
 }

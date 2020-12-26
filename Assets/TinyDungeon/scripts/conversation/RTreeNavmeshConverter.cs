@@ -40,6 +40,9 @@ namespace TD
         public int defaultQueueLenght;
         public int maxChildrensCount;
 
+        [Header("Navmesh data")]
+        public NavmeshData navmeshData;
+
         [Header("Debug")]
         public Transform debugStartPoint;
         public Transform debugEndPoint;
@@ -97,6 +100,20 @@ namespace TD
         }
 
 #if UNITY_EDITOR
+        public void SaveNavMeshAsset()
+        {
+            NavMeshTriangulation triangulatedNavMesh = NavMesh.CalculateTriangulation();
+            Vector3[] originalVertices = triangulatedNavMesh.vertices;
+            int[] originalIndexes = triangulatedNavMesh.indices;
+
+            navmeshData.originalIndexes = originalIndexes;
+            navmeshData.originalVertices = originalVertices;
+
+            EditorUtility.SetDirty(navmeshData);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+
         public void Convert()
         {
             if(maxChildrensCount > 10)
@@ -105,7 +122,7 @@ namespace TD
                 maxChildrensCount = 10;
             }
             collisionTree = new RTree(maxChildrensCount);
-
+            
             List<BoundaryEdge> navmeshEdges = GetNavmeshBoundary();
 
             //next add boundary edges of all gate objects
@@ -717,9 +734,13 @@ namespace TD
         public List<BoundaryEdge> GetNavmeshBoundary()
         {
             //copy algorithm 
-            NavMeshTriangulation triangulatedNavMesh = NavMesh.CalculateTriangulation();
-            Vector3[] originalVertices = triangulatedNavMesh.vertices;
-            int[] originalIndexes = triangulatedNavMesh.indices;
+            //NavMeshTriangulation triangulatedNavMesh = NavMesh.CalculateTriangulation();
+            //Vector3[] originalVertices = navmeshData == null ? triangulatedNavMesh.vertices : navmeshData.originalVertices;
+            //int[] originalIndexes = navmeshData == null ? triangulatedNavMesh.indices : navmeshData.originalIndexes;
+            Debug.Log("navmeshdata: " + navmeshData.ToString());
+            Debug.Log(navmeshData.originalIndexes.Length.ToString());
+            Vector3[] originalVertices = navmeshData.originalVertices;
+            int[] originalIndexes = navmeshData.originalIndexes;
             float weldValue = 0.01f;
             List<VertexData> vertexList = new List<VertexData>();
             for (int i = 0; i < originalVertices.Length; i++)

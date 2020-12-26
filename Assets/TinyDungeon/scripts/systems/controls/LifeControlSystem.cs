@@ -2,6 +2,7 @@
 using Unity.Collections;
 using Unity.Transforms;
 using Unity.Mathematics;
+using Unity.Tiny.Audio;
 
 namespace TD
 {
@@ -30,8 +31,8 @@ namespace TD
             NativeArray<Entity> targets = damagebleQuert.ToEntityArray(Allocator.TempJob);
 
             ref CollisionMapBlobAsset map = ref GetSingleton<CollisionMap>().collisionMap.Value;
-
-            for(int i = 0; i < entities.Length; i++)
+            EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
+            for (int i = 0; i < entities.Length; i++)
             {
                 Entity entity = entities[i];
                 LifeComponent life = manager.GetComponentData<LifeComponent>(entity);
@@ -43,12 +44,12 @@ namespace TD
                         Translation entityTranslation = manager.GetComponentData<Translation>(entity);
 
                         Entity explosionEntity = manager.Instantiate(explodeComponent.explosionPrefab);
-                        manager.SetComponentData<Translation>(explosionEntity, new Translation()
+                        cmdBuffer.SetComponent<Translation>(explosionEntity, new Translation()
                         {
                             Value = entityTranslation.Value
                         });
                         LifetimeComponent explosionLifetime = manager.GetComponentData<LifetimeComponent>(explosionEntity);
-                        manager.SetComponentData<LifetimeComponent>(explosionEntity, new LifetimeComponent()
+                        cmdBuffer.SetComponent<LifetimeComponent>(explosionEntity, new LifetimeComponent()
                         {
                             lifeTime = explosionLifetime.lifeTime,
                             startTime = Time.ElapsedTime
@@ -69,7 +70,8 @@ namespace TD
 
                                 if (math.distancesq(targetPosition, explodePosition) < (explodeComponent.damageRadius + targetRaidus.Value) * (explodeComponent.damageRadius + targetRaidus.Value))
                                 {//apply damage
-                                    manager.AddComponentData(target, new DelayDamageComponent()
+                                    //UnityEngine.Debug.Log("Add delay damage at start=" + Time.ElapsedTime.ToString() + " damage=" + explodeComponent.damage.ToString() + " delay=" + ((explodeComponent.delayMaximum - explodeComponent.delayMinimum) * random.NextFloat() + explodeComponent.delayMinimum).ToString());
+                                    cmdBuffer.AddComponent(target, new DelayDamageComponent()
                                     {
                                         startTime = Time.ElapsedTime,
                                         damage = explodeComponent.damage,
@@ -82,17 +84,33 @@ namespace TD
 
                     if(manager.HasComponent<PlayerComponent>(entity) && !manager.HasComponent<DeadTag>(entity))
                     {//set player dead
-                        manager.AddComponent(entity, typeof(DeadTag));
+                        cmdBuffer.AddComponent(entity, typeof(DeadTag));
 
                         //add cooldawn component
-                        manager.AddComponentData<DeadCooldawnComponent>(entity, new DeadCooldawnComponent()
+                        cmdBuffer.AddComponent<DeadCooldawnComponent>(entity, new DeadCooldawnComponent()
                         {
                             startTime = Time.ElapsedTime,
                             delayTime = 5.0f  // set dead delay to 5 seconds
                         });
+
+                        //set dead animation
+                        PlayerAnimationsComponent playerAnim = manager.GetComponentData<PlayerAnimationsComponent>(entity);
+                        playerAnim.newAimation = 5;
+                        cmdBuffer.SetComponent(entity, playerAnim);
+
+                        //stop walk sound
+                        PlayerSoundComponent playerSound = manager.GetComponentData<PlayerSoundComponent>(entity);
+                        cmdBuffer.AddComponent<AudioSourceStop>(playerSound.moveSound);
                     }
                     else
                     {
+                        //turn off alarm sound
+                        if (manager.HasComponent<TowerComponent>(entity))
+                        {
+                            TowerSoundComponent towerSound = manager.GetComponentData<TowerSoundComponent>(entity);
+                            cmdBuffer.AddComponent<AudioSourceStop>(towerSound.alarmSound);
+                        }
+
                         if(manager.HasComponent<CollisionEdgesSetComponent>(entity))
                         {//entity contains data about correspondign collision edges
                             //before we destroy the entity, we should deactivate these edges
@@ -100,13 +118,15 @@ namespace TD
                             //process for all non-zero indexes
                             map.Deactivate(indexes);
                         }
-                        manager.DestroyEntity(entity);
+                        cmdBuffer.DestroyEntity(entity);
                     }
                 }
             }
 
             entities.Dispose();
             targets.Dispose();
+
+            cmdBuffer.Playback(manager);
         }
     }
 }

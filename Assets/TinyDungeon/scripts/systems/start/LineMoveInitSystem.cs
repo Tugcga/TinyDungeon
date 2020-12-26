@@ -16,7 +16,7 @@ namespace TD
             manager = World.EntityManager;
             RequireSingletonForUpdate<CollisionMap>();
             
-            collisionThickness = 0.5f;  // by default the player has radius = 0.5f
+            collisionThickness = 0.0f;  // by default the player has radius = 1.0f
             base.OnCreate();
         }
 
@@ -27,7 +27,12 @@ namespace TD
             EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
             double time = Time.ElapsedTime;
             float shift = collisionThickness;
-            Entities.WithNone<DestroyBulletTag>().WithAll<LineMoveInitTag>().ForEach((Entity entity, ref LineMoveComponent move, in BulletComponent bullet, in LineMoveInitTag init, in DirectionComponent direction, in LifetimeComponent lifetime) =>
+            Entities.
+#if USE_FOREACH_SYSTEM
+#else
+                WithoutBurst().
+#endif
+                WithNone<DestroyBulletTag>().WithAll<LineMoveInitTag>().ForEach((Entity entity, ref LineMoveComponent move, in BulletComponent bullet, in LineMoveInitTag init, in DirectionComponent direction, in LifetimeComponent lifetime) =>
             {
                 //check, is there are any collisions between host position and emited position
                 float2 eStart = init.hostPosition;
@@ -102,7 +107,7 @@ namespace TD
                 }
             }).Run();
 
-            cmdBuffer.Playback(EntityManager);
+            cmdBuffer.Playback(manager);
         }
     }
 }

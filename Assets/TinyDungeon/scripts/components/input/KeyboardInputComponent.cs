@@ -12,5 +12,7 @@ namespace TD
         public bool isPressRight;
 
         public bool isPressAction;
+
+        public bool isPressAny;  // tirn on, if press any keyboard button
     }
 }

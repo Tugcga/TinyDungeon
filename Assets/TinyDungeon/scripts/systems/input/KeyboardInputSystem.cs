@@ -27,14 +27,13 @@ namespace TD
 #else
             
 #endif
-            bool isPressFront = Input.GetKey(KeyCode.W);
-            bool isPressBack = Input.GetKey(KeyCode.S);
-            bool isPressLeft = Input.GetKey(KeyCode.A);
-            bool isPressRight = Input.GetKey(KeyCode.D);
+            bool isPressFront = Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow);
+            bool isPressBack = Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow);
+            bool isPressLeft = Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow);
+            bool isPressRight = Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow);
 
+            bool isAny = Input.GetKeyDown(KeyCode.Space);
             bool isAction = Input.GetKeyDown(KeyCode.F);
-
-            float dt = Time.DeltaTime;
 
             SetSingleton<KeyboardInputComponent>(new KeyboardInputComponent()
             {
@@ -42,7 +41,9 @@ namespace TD
                 isPressBack = isPressBack,
                 isPressLeft = isPressLeft,
                 isPressRight = isPressRight,
-                isPressAction = isAction
+                isPressAction = isAction,
+
+                isPressAny = isAny
             });
         }
     }

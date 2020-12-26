@@ -16,7 +16,12 @@ namespace TD
         {
             double time = Time.ElapsedTime;
             float dt = Time.DeltaTime;
-            Entities.ForEach((ref Translation translate, ref Rotation rotation, ref Scale scale, in AmmoAnimatorComponent anim) =>
+            Entities.
+#if USE_FOREACH_SYSTEM
+#else
+                WithoutBurst().
+#endif
+                ForEach((ref Translation translate, ref Rotation rotation, ref Scale scale, in AmmoAnimatorComponent anim) =>
             {
                 translate.Value = new float3(translate.Value.x, 
                     math.sin((float)time * anim.heightFrequency) * (anim.maxHeight - anim.minHeight) / 2 + (anim.minHeight + anim.maxHeight) / 2, 

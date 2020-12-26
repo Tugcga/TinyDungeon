@@ -11,14 +11,17 @@ namespace TD
     {
         EntityManager manager;
         EntityQuery targetsGroup;
-        //EntityQuery bulletsGroup;
+        EntityQuery itemsGroup;
+        EntityQuery bulletsGroup;
         float squareSize;
 
         protected override void OnCreate()
         {
             manager = World.EntityManager;
             targetsGroup = manager.CreateEntityQuery(typeof(LifeComponent), typeof(RadiusComponent), typeof(Translation), ComponentType.Exclude<DeadTag>());
-            
+            itemsGroup = manager.CreateEntityQuery(typeof(Translation), typeof(RadiusComponent), typeof(LifeComponent), typeof(ItemTypeComponent), ComponentType.Exclude<DeadTag>());
+            bulletsGroup = manager.CreateEntityQuery(typeof(LineMoveComponent), typeof(HostTypeComponent), typeof(BulletComponent), typeof(DirectionComponent));
+
             squareSize = 2.0f;
 
             base.OnCreate();
@@ -41,11 +44,22 @@ namespace TD
 
         protected override void OnUpdate()
         {
-            EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
             NativeMultiHashMap<int, MapData> targetsMap = new NativeMultiHashMap<int, MapData>(targetsGroup.CalculateEntityCount(), Allocator.Persistent);
             float localSize = squareSize;
+#if USE_FOREACH_SYSTEM
+            EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
             Entities.WithNone<DeadTag>().ForEach((Entity entity, in Translation trn, in RadiusComponent radius, in LifeComponent life, in ItemTypeComponent itemType) =>
             {
+#else
+            NativeArray<Entity> entities = itemsGroup.ToEntityArray(Allocator.Temp);
+            for (int i = 0; i < entities.Length; i++)
+            {
+                Entity entity = entities[i];
+                Translation trn = manager.GetComponentData<Translation>(entity);
+                RadiusComponent radius = manager.GetComponentData<RadiusComponent>(entity);
+                LifeComponent life = manager.GetComponentData<LifeComponent>(entity);
+                ItemTypeComponent itemType = manager.GetComponentData<ItemTypeComponent>(entity);
+#endif
                 int index = Helper.GetSegmentIndexFromPosition(trn.Value, localSize);
                 targetsMap.Add(index, new MapData()
                 {
@@ -56,10 +70,27 @@ namespace TD
                     life = life.life,
                     type = itemType.type
                 });
+#if USE_FOREACH_SYSTEM
             }).Run();
+#else
+            }
+            entities.Dispose();
+#endif
 
+#if USE_FOREACH_SYSTEM
             Entities.ForEach((Entity entity, in LineMoveComponent move, in HostTypeComponent host, in BulletComponent bullet, in DirectionComponent direction) =>
             {
+#else
+            NativeArray<Entity> bullets = bulletsGroup.ToEntityArray(Allocator.Temp);
+            for (int e = 0; e < bullets.Length; e++)
+            {
+                Entity entity = bullets[e];
+                LineMoveComponent move = manager.GetComponentData<LineMoveComponent>(entity);
+                HostTypeComponent host = manager.GetComponentData<HostTypeComponent>(entity);
+                BulletComponent bullet = manager.GetComponentData<BulletComponent>(entity);
+                DirectionComponent direction = manager.GetComponentData<DirectionComponent>(entity);
+#endif
+
                 int2 uv = Helper.GetSegmentUVFromPosition(move.currentPoint, localSize);
                 NativeArray<int> segmentIndexes = new NativeArray<int>(9, Allocator.TempJob);
                 //fill segment indexes
@@ -87,6 +118,7 @@ namespace TD
                             {
                                 if (math.distancesq(move.currentPoint, currentTarget.position) < currentTarget.radius * currentTarget.radius)
                                 {//apply damage to entity
+#if USE_FOREACH_SYSTEM
                                     cmdBuffer.SetComponent<LifeComponent>(currentTarget.entity, new LifeComponent()
                                     {
                                         life = currentTarget.life - bullet.damage,
@@ -95,11 +127,24 @@ namespace TD
                                     //destory the bullet
                                     cmdBuffer.AddComponent(entity, new DestroyBulletTag());
 
-                                    if(host.host == HostTypes.HOST_PLAYER && currentTarget.type == ItemType.ITEM_TOWER)
+                                    if (host.host == HostTypes.HOST_PLAYER && currentTarget.type == ItemType.ITEM_TOWER)
                                     {//player hit the tower
                                         //switch tower state to atack
-                                        cmdBuffer.AddComponent(currentTarget.entity, new StartAtackPlayerTag() { atackDirection = -direction .direction});
+                                        cmdBuffer.AddComponent(currentTarget.entity, new StartAtackPlayerTag() { atackDirection = -direction.direction });
                                     }
+#else
+                                    manager.SetComponentData(currentTarget.entity, new LifeComponent()
+                                    {
+                                        life = currentTarget.life - bullet.damage,
+                                        maxLife = currentTarget.maxLife
+                                    });
+                                    manager.AddComponentData(entity, new DestroyBulletTag());
+
+                                    if (host.host == HostTypes.HOST_PLAYER && currentTarget.type == ItemType.ITEM_TOWER)
+                                    {
+                                        manager.AddComponentData(currentTarget.entity, new StartAtackPlayerTag() { atackDirection = -direction.direction });
+                                    }
+#endif
                                 }
                             }
                         }
@@ -107,11 +152,17 @@ namespace TD
                     }
                 }
                 segmentIndexes.Dispose();
+#if USE_FOREACH_SYSTEM
+            }).Run();
+#else
             }
-            ).Run();
+            bullets.Dispose();
+#endif
 
             targetsMap.Dispose();
+#if USE_FOREACH_SYSTEM
             cmdBuffer.Playback(manager);
+#endif
         }
     }
 }

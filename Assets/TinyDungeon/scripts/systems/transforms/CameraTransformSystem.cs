@@ -11,7 +11,12 @@ namespace TD
     {
         protected override void OnUpdate()
         {
-            Entities.ForEach((ref Translation position, ref Rotation rotation, in CameraComponent camera, in PlayerPositionComponent playerPosition) =>
+            Entities.
+#if USE_FOREACH_SYSTEM
+#else
+                WithoutBurst().
+#endif
+                ForEach((ref Translation position, ref Rotation rotation, in CameraComponent camera, in PlayerPositionComponent playerPosition) =>
             {
                 float3 newPosition = new float3(playerPosition.position.x + camera.distance * math.cos(camera.positionU) * math.cos(camera.positionV), 
                                                 camera.distance * math.sin(camera.positionV) + camera.verticalHeight, 
@@ -20,6 +25,7 @@ namespace TD
                 float3 toVector = new float3(playerPosition.position.x, camera.verticalHeight, playerPosition.position.y) - newPosition;
                 toVector = math.normalize(toVector);
                 rotation.Value = quaternion.LookRotation(toVector, new float3(0, 1, 0));
+
             }).Run();
         }
     }
