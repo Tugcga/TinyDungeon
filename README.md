@@ -18,6 +18,7 @@ This is a project on an early WIP stage. Repository contains implementation of s
 * If tower get damage from any direction, then it rotates to scan the area from this direction. If this are does not contains player, then the tower returns to the scanning of the default area.
 * If the player is dead, then it blocked on several seconds, after that it starts the level from the start point.
 * One tutorial level and 4 simple levels as examples of gameplay.
+* Very WIP build [here](https://tugcga.github.io/games/TinyDungeon/game_td.html)
 
 
 ### References
