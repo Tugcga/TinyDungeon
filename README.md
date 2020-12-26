@@ -33,3 +33,4 @@ This is a project on an early WIP stage. Repository contains implementation of s
 * Crashes in builds, builded with Burst enabled.
 * In WebGL build the looped sound is played after destroying parent entity.
 * Some crashes in a scene with many destroyed entities.
+* In WebGL build mouse position translated to canvas with respect to top-left corner of the window, but not to the canvas html-element.
