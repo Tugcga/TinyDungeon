@@ -6,7 +6,7 @@
         {
             "$type": "Unity.Build.DotsRuntime.DotsRuntimeBuildProfile, Unity.Build.DotsRuntime",
             "Target": "wasm",
-            "Configuration": 2,
+            "Configuration": 3,
             "UseNewPipeline": false,
             "PipelineConstructor": null
         },
