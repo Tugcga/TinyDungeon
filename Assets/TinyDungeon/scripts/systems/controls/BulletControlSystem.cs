@@ -28,7 +28,7 @@ namespace TD
 
             float deltaTime = Time.DeltaTime;
 
-            Entities.WithNone<DestroyBulletTag>().ForEach((Entity entity, ref LineMoveComponent move, in DirectionComponent direction, in BulletComponent bullet) =>
+            Entities.WithNone<BulletExplosionTag, DestroyBulletTag>().ForEach((Entity entity, ref LineMoveComponent move, in DirectionComponent direction, in BulletComponent bullet) =>
             {
                 move.currentPoint += (new float2(direction.direction.x, direction.direction.y)) * bullet.speed * deltaTime;
 
@@ -37,27 +37,9 @@ namespace TD
                     float2 toEnd = move.endPoint - move.currentPoint;
                     if (math.dot(direction.direction, toEnd) < 0.0)
                     {
-                        cmdBuffer.AddComponent<DestroyBulletTag>(entity);
+                        cmdBuffer.AddComponent<BulletExplosionTag>(entity);
                     }
                 }
-            }).Run();
-
-            //next two parts are too different, to union it into one code
-            double time = Time.ElapsedTime;
-
-            Entities.WithAll<DestroyBulletTag>().ForEach((Entity entity, in BulletComponent bullet, in HeightComponent height, in LineMoveComponent move) =>
-            {
-                cmdBuffer.DestroyEntity(entity);
-                Entity explosion = cmdBuffer.Instantiate(bullet.explosionPrefab);
-                cmdBuffer.SetComponent<LifetimeComponent>(explosion, new LifetimeComponent()
-                {
-                    startTime = time,
-                    lifeTime = bullet.explosionLifetime
-                });
-                cmdBuffer.SetComponent<Translation>(explosion, new Translation()
-                {
-                    Value = new float3(move.currentPoint.x, height.Value, move.currentPoint.y)
-                });
             }).Run();
 
             cmdBuffer.Playback(manager);

@@ -5,6 +5,7 @@ using Unity.Mathematics;
 
 namespace TD
 {
+    [UpdateBefore(typeof(BulletDestroySystem))]
     public class LifetimeControlSystem : SystemBase
     {
         EntityManager manager;
@@ -22,13 +23,25 @@ namespace TD
         {
             double time = Time.ElapsedTime;
             EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
-            Entities.ForEach((Entity entity, in LifetimeComponent life) =>
+
+            //for bullets add destroy tag
+            Entities.WithAny<BulletComponent>().ForEach((Entity entity, in LifetimeComponent life) =>
+            {
+                if (time - life.startTime > life.lifeTime)
+                {
+                    cmdBuffer.AddComponent<DestroyBulletTag>(entity);
+                }
+            }).Run();
+
+            //for all other life-time objects (explosions, etc) - simply destroy it
+            Entities.WithNone<BulletComponent, DestroyBulletTag>().ForEach((Entity entity, in LifetimeComponent life) =>
             {
                 if (time - life.startTime > life.lifeTime)
                 {
                     cmdBuffer.DestroyEntity(entity);
                 }
             }).Run();
+
             cmdBuffer.Playback(manager);
         }
     }
