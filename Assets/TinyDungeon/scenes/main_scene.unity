@@ -1091,9 +1091,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cascadeScale:
-    x: 0.9
-    y: 0.5
-    z: 0.2
+    x: 0.5
+    y: 0.15
+    z: 0.02
   mainCamera: {fileID: 505939491}
 --- !u!1 &1408100699
 GameObject:
