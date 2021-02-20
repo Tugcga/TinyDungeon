@@ -7045,7 +7045,7 @@ MonoBehaviour:
   lineColor: {r: 0, g: 0, b: 0, a: 0}
   outputColor: {r: 0, g: 0, b: 0, a: 0}
   debugOutputPointRadius: 0
-  polygonsColor: {r: 0, g: 0, b: 0, a: 0}
+  polygonsColor: {r: 1, g: 0, b: 0, a: 1}
   bbColor: {r: 0, g: 0, b: 0, a: 0}
   searchResultColor: {r: 0, g: 0, b: 0, a: 0}
   normalShiftSearchResult: 0

@@ -25,7 +25,7 @@ namespace TD
                 ComponentType.ReadOnly<Translation>(),
                 ComponentType.ReadOnly<PlayerPositionComponent>(),
                 ComponentType.ReadOnly<TowerSoundComponent>());
-            RequireSingletonForUpdate<CollisionMap>();
+            //RequireSingletonForUpdate<CollisionMap>();
             base.OnCreate();
         }
 
@@ -34,17 +34,21 @@ namespace TD
         {
             double time = Time.ElapsedTime;
             float dt = Time.DeltaTime;
-            //float randomValue = random.NextFloat();  // here the same value used for each iteration, this is ok, because actions accure at different time
-            //in each tower we use it individual random generator
-
-            CollisionMap map = GetSingleton<CollisionMap>();
 
             EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
-            Entities.ForEach((ref SearchPlayerComponent search, ref ShoterComponent shoter, ref RandomComponent random,
-                in TowerComponent tower, in Rotation rotation, in Translation translation, in PlayerPositionComponent playerPosition, in TowerSoundComponent towerSound) =>
+            Entities.
+                ForEach((
+                ref SearchPlayerComponent search, 
+                ref ShoterComponent shoter, 
+                ref MovableCollisionComponent collision,  //ERROR: blobAssetReferense should be in the separate component, because if in the component with entity data, then this entity does not exists
+                ref TowerComponent tower, 
+                in Rotation rotation, 
+                in Translation translation, 
+                in PlayerPositionComponent playerPosition, 
+                in TowerSoundComponent towerSound) =>
             {
                 TowerState oldState = search.state;
-
+                ref CollisionMapBlobAsset collisiosnAsset = ref collision.collisionMap.Value;
                 if (tower.isActive)
                 {
                     float4 q = rotation.Value.value;
@@ -63,7 +67,7 @@ namespace TD
                         search.toPlayerDirection = math.normalize(search.toPlayer);
                         search.toPlayerAngle = math.acos(math.dot(search.toPlayerDirection, searchForward));
 
-                        CollisionInfo info = map.collisionMap.Value.GetPoint(
+                        CollisionInfo info = collisiosnAsset.GetPoint(
                             new float2(translation.Value.x, translation.Value.z),
                             playerPosition.position, false);
                         search.isVisiblePlayer = !info.isCollide;
@@ -121,6 +125,7 @@ namespace TD
                                 }
                             }
                         }
+
                         cmdBuffer.SetComponent<TowerLookComponent>(search.rotateObject, new TowerLookComponent()
                         {
                             angle = search.angle,
@@ -249,7 +254,7 @@ namespace TD
                                     cmdBuffer.AddComponent<LocalToParent>(flash);
                                     cmdBuffer.AddComponent<Parent>(flash, new Parent() { Value = shoter.weaponCorner });
 
-                                    float2 bulletDirection = search.toPlayerDirection + (random.random.NextFloat() * 2 * tower.shotDelta - tower.shotDelta) * (new float2(search.toPlayerDirection.y, -search.toPlayerDirection.x));
+                                    float2 bulletDirection = search.toPlayerDirection + (tower.random.NextFloat() * 2 * tower.shotDelta - tower.shotDelta) * (new float2(search.toPlayerDirection.y, -search.toPlayerDirection.x));
                                     bulletDirection = math.normalize(bulletDirection);
                                     quaternion bulletRotation = quaternion.LookRotation(new float3(bulletDirection.x, 0.0f, bulletDirection.y), new float3(0f, 0f, 1f));
 
@@ -298,12 +303,12 @@ namespace TD
                 if((oldState == TowerState.STATE_WAIT || oldState == TowerState.STATE_SEARCH || oldState == TowerState.STATE_RETURN_TO_SEARCH) 
                     && (search.state == TowerState.STATE_TARGET))
                 {
-                    //---cmdBuffer.AddComponent<AudioSourceStop>(towerSound.alarmSound);  // in web build this sound is still played after destroying the parent entity
+                    cmdBuffer.AddComponent<AudioSourceStop>(towerSound.alarmSound);  //ERROR: in web build this sound is still played after destroying the parent entity
                 }
                 else if((oldState == TowerState.STATE_TARGET) && 
                     (search.state == TowerState.STATE_WAIT || search.state == TowerState.STATE_SEARCH || search.state == TowerState.STATE_RETURN_TO_SEARCH))
                 {
-                    //---cmdBuffer.AddComponent<AudioSourceStop>(towerSound.alarmSound);
+                    cmdBuffer.AddComponent<AudioSourceStop>(towerSound.alarmSound);  // and also here
                 }
 
             }).Run();

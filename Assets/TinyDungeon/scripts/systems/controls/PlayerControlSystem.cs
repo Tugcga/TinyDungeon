@@ -28,7 +28,7 @@ namespace TD
             RequireSingletonForUpdate<KeyboardInputComponent>();
             RequireSingletonForUpdate<MouseInputComponent>();
             RequireSingletonForUpdate<CameraDirectionComponent>();
-            RequireSingletonForUpdate<CollisionMap>();
+            //RequireSingletonForUpdate<CollisionMap>();  // it seems that this component does not need
 
             RequireSingletonForUpdate<PlayerComponent>();
 
@@ -88,8 +88,6 @@ namespace TD
 
                     move.nextPosition = move.position + (cameraDirection.forward * vector.y + cameraDirection.right * vector.x) * player.speed * dt;
                     move.isMove = true;
-
-                    //UnityEngine.Debug.Log("set next position: " + move.nextPosition.ToString() + " speed: " + player.speed.ToString() + " dt=" + dt.ToString() + " " + cameraDirection.forward.ToString());
                 }
                 else
                 {
@@ -105,7 +103,7 @@ namespace TD
                 else if(oldMove && !move.isMove)
                 {//finish moving
                     //stop move sound
-                    cmdBuffer.AddComponent<AudioSourceStop>(sound.moveSound);
+                    cmdBuffer.AddComponent<AudioSourceStop>(sound.moveSound);  //ERROR: walk sound fade off after second, may be this is a bug...
                 }
 
                 player.direction = mouseInput.mouseGroundPosition - move.position;

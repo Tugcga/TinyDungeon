@@ -257,7 +257,7 @@ namespace TD
 
         public CollisionInfo GetPoint(float2 start, float2 end, bool movingTask)
         {
-            NativeArray<int> queueIndexes = new NativeArray<int>(queueLength, Allocator.TempJob);
+            NativeArray<int> queueIndexes = new NativeArray<int>(queueLength, Allocator.TempJob);  // in Burst enabled, dispose this array is crash the game
             int queuePointer = 0;
             queueIndexes[0] = rootIndex;
 
@@ -406,13 +406,7 @@ namespace TD
     public struct MovableCollisionComponent : IComponentData
     {
         public BlobAssetReference<CollisionMapBlobAsset> collisionMap;
-
-
-        public MovableCollisionComponent(BlobAssetReference<CollisionMapBlobAsset> blob)
-        {
-            collisionMap = blob;
-        }
-
+        
         public CollisionInfo GetPoint(float2 start, float2 end)
         {
             return collisionMap.Value.GetPoint(start, end, true);

@@ -14,7 +14,7 @@ namespace TD
         {
             base.OnCreate();
             manager = World.EntityManager;
-            movableGroup = manager.CreateEntityQuery(typeof(MovableComponent), ComponentType.Exclude<MovableCollisionComponent>(), ComponentType.Exclude<BulletComponent>());
+            movableGroup = manager.CreateEntityQuery(typeof(MovableComponent), ComponentType.Exclude<MovableCollisionComponent>()/*, ComponentType.Exclude<BulletComponent>()*/);
             RequireSingletonForUpdate<CollisionMap>();
         }
 
@@ -24,9 +24,13 @@ namespace TD
 
             EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
             //for any movable entity we should add component, which contains collision data
-            Entities.WithNone<MovableCollisionComponent>().WithNone<BulletComponent>().ForEach((Entity entity, in MovableComponent move) =>
-            {
-                cmdBuffer.AddComponent(entity, new MovableCollisionComponent(map.collisionMap));
+            //add to player (contains movablecomponent) or to the bullet (contains linemoveinittag)
+            Entities.WithoutBurst().
+                WithNone<MovableCollisionComponent>().
+                WithAny<MovableComponent, LineMoveInitTag>().
+                ForEach((Entity entity) =>
+            {//use WithoutBurst because with burst in some cases the component is not added to the entity
+                cmdBuffer.AddComponent(entity, new MovableCollisionComponent() { collisionMap = map.collisionMap});
             }).Run();
 
             cmdBuffer.Playback(manager);

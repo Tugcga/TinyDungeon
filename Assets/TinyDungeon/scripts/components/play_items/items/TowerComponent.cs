@@ -27,5 +27,7 @@ namespace TD
         public bool isActive;
         public Entity weaponCorner;
         public float3 weaponCornerPosition;
+
+        public Random random;
     }
 }

@@ -1073,7 +1073,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3737243813725348056, guid: c4651ef42c6eb7542af55b1870ebdee0, type: 3}
       propertyPath: position.x
-      value: 2.92
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8337628233522309760, guid: c4651ef42c6eb7542af55b1870ebdee0, type: 3}
       propertyPath: m_Name
@@ -8372,7 +8372,7 @@ MonoBehaviour:
   lineColor: {r: 0, g: 0, b: 0, a: 0}
   outputColor: {r: 0, g: 0, b: 0, a: 0}
   debugOutputPointRadius: 0
-  polygonsColor: {r: 0, g: 0, b: 0, a: 0}
+  polygonsColor: {r: 1, g: 0, b: 0, a: 1}
   bbColor: {r: 0, g: 0, b: 0, a: 0}
   searchResultColor: {r: 0, g: 0, b: 0, a: 0}
   normalShiftSearchResult: 0

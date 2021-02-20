@@ -74,6 +74,10 @@ namespace TD
         {
             SceneControllerComponent controller = GetSingleton<SceneControllerComponent>();
 
+            //ERROR: if reload scene several times, then occures some crash
+            //for eaxmple, when place two teleports to the same level near each other
+            //also when reload scene with some active entity (it try do remove it by using buffer, but scene is unload, and it create some collision)
+
             if(isInitialState)
             {//call this only once at start of the system
                 //hide all game ui elements
@@ -115,6 +119,8 @@ namespace TD
                         }
                     }
                     allScenes.Dispose();
+                    //in this stage collision map blob asset should be cleared, because we unload the entity with cirrespondence component
+                    //but why the memory of the game encrease when the level reloaded?
                 }
                 //and then load target scene
                 if(controller.targetSceneIndex > 0)

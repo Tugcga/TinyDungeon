@@ -14,7 +14,7 @@ namespace TD
         protected override void OnCreate()
         {
             manager = World.EntityManager;
-            RequireSingletonForUpdate<CollisionMap>();
+            //RequireSingletonForUpdate<CollisionMap>();
             
             collisionThickness = 0.0f;  // by default the player has radius = 1.0f
             base.OnCreate();
@@ -22,20 +22,22 @@ namespace TD
 
         protected override void OnUpdate()
         {
-            CollisionMap mapData = GetSingleton<CollisionMap>();  // here we copy struct data to the variable
+            //CollisionMap mapData = GetSingleton<CollisionMap>();  // here we copy struct data to the variable
 
             EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
             double time = Time.ElapsedTime;
             float shift = collisionThickness;
             Entities.
-                WithNone<DestroyBulletTag>().WithAll<LineMoveInitTag>().ForEach((Entity entity, ref LineMoveComponent move, in BulletComponent bullet, in LineMoveInitTag init, in DirectionComponent direction, in LifetimeComponent lifetime) =>
+                WithNone<DestroyBulletTag>().WithAll<LineMoveInitTag>().ForEach((Entity entity, ref LineMoveComponent move, ref MovableCollisionComponent collision, in BulletComponent bullet, in LineMoveInitTag init, in DirectionComponent direction, in LifetimeComponent lifetime) =>
             {
                 //check, is there are any collisions between host position and emited position
                 float2 eStart = init.hostPosition;
                 float2 eEnd = move.currentPoint;
 
                 //check collision with the edge between host center and bullet-emiter start point
-                CollisionInfo eInfo = mapData.collisionMap.Value.GetPoint(eStart, eEnd, false);
+                //CollisionInfo eInfo = mapData.collisionMap.Value.GetPoint(eStart, eEnd, false);
+                ref CollisionMapBlobAsset collisiosnAsset = ref collision.collisionMap.Value;
+                CollisionInfo eInfo = collisiosnAsset.GetPoint(eStart, eEnd, false);
                 if (eInfo.isCollide)
                 {//bullet starts inside the collider, so, we should only try to find the point near the geometry of the collider
                     float cosAlpha = math.dot(direction.direction, -eInfo.collisionEdge.normal);
@@ -73,7 +75,7 @@ namespace TD
                     float2 end = start + direction.direction * bullet.speed * (float)(lifetime.lifeTime - (time - lifetime.startTime));
 
                     //find the result of intersection of the ray from start to end by collision map
-                    CollisionInfo info = mapData.collisionMap.Value.GetPoint(start, end, false);
+                    CollisionInfo info = collisiosnAsset.GetPoint(start, end, false);
                     if (info.isCollide)
                     {
                         float cosAlpha = math.dot(direction.direction, -info.collisionEdge.normal);

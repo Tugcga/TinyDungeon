@@ -5659,12 +5659,12 @@ MonoBehaviour:
   navmeshData: {fileID: 11400000, guid: b4b0004b275f70d48b61011990782fcc, type: 2}
   debugStartPoint: {fileID: 0}
   debugEndPoint: {fileID: 0}
-  lineColor: {r: 0, g: 0, b: 0, a: 0}
+  lineColor: {r: 0.9056604, g: 0.08116765, b: 0.08116765, a: 1}
   outputColor: {r: 0, g: 0, b: 0, a: 0}
   debugOutputPointRadius: 0
-  polygonsColor: {r: 0, g: 0, b: 0, a: 0}
-  bbColor: {r: 0, g: 0, b: 0, a: 0}
-  searchResultColor: {r: 0, g: 0, b: 0, a: 0}
+  polygonsColor: {r: 0.735849, g: 0.15619439, b: 0.15619439, a: 0.7019608}
+  bbColor: {r: 0.26713243, g: 0.8207547, b: 0.3178953, a: 0.08627451}
+  searchResultColor: {r: 0.8396226, g: 0.77461964, b: 0.13069598, a: 1}
   normalShiftSearchResult: 0
   debugOutputPosition: {x: 0, y: 0, z: 0}
 --- !u!1001 &5097714628954030946

@@ -17,8 +17,6 @@ namespace TD
 
         protected override void OnCreate()
         {
-            //RequireSingletonForUpdate<CollisionMap>();
-            //isInit = false;
             manager = World.EntityManager;
             movableGroup = manager.CreateEntityQuery(typeof(MovableComponent), typeof(MovableCollisionComponent), ComponentType.Exclude<DeadTag>());
             base.OnCreate();
@@ -30,13 +28,15 @@ namespace TD
         {
             bool useNavmesh = _useNavmesh;
 
-            Entities.WithNone<DeadTag>().ForEach((ref MovableComponent move, in MovableCollisionComponent collision) =>
+            Entities.WithNone<DeadTag>().ForEach((ref MovableComponent move, ref MovableCollisionComponent collision) =>
             {
                 if (move.isMove)
                 {
                     if(useNavmesh)
                     {
-                        CollisionInfo info = collision.GetPoint(move.position, move.nextPosition);
+                        //CollisionInfo info = collision.GetPoint(move.position, move.nextPosition);
+                        ref CollisionMapBlobAsset asset = ref collision.collisionMap.Value;
+                        CollisionInfo info = asset.GetPoint(move.position, move.nextPosition, true);
                         move.position = info.endPoint;
                     }
                     else
@@ -45,6 +45,7 @@ namespace TD
                     }
                 }
             }).Run();
+
         }
     }
 

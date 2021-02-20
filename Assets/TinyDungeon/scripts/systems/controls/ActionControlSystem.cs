@@ -39,7 +39,7 @@ namespace TD
             if(!isGearVisible && shouldActivate)
             {
                 Entities.
-                WithoutBurst().
+                //WithoutBurst().  // why we use here WithoutBurst?
                 WithAny<UIGearValueComponent>().
                 ForEach((Entity entity, ref Translation translation) =>
                 {
@@ -52,7 +52,7 @@ namespace TD
             else if(isGearVisible && shouldDeactivate && !shouldActivate)
             {
                 Entities.
-                WithoutBurst().
+                //WithoutBurst().  // and here?
                 WithAny<UIGearValueComponent>().
                 ForEach((Entity entity, ref Translation translation) =>
                 {

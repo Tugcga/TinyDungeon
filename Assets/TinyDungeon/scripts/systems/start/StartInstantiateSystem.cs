@@ -29,13 +29,13 @@ namespace TD
             ammosStartGroup = manager.CreateEntityQuery(typeof(StartAmmoIdentifierComponent), typeof(StartInstantiateComponent), typeof(Translation), typeof(Rotation));
             exitsStartGroup = manager.CreateEntityQuery(typeof(StartLevelExitIdentifierComponent), typeof(StartInstantiateComponent), typeof(Translation), typeof(Rotation));
 
-            //random = new Random(3);  // this random also different for different entities
-
             base.OnCreate();
         }
 
-        Entity ItemProcess(Entity e, ref CollisionMapBlobAsset map)
+        Entity ItemProcess(Entity e, BlobAssetReference<CollisionMapBlobAsset> mapRef)
         {
+            ref CollisionMapBlobAsset map = ref mapRef.Value;
+
             StartInstantiateComponent start = manager.GetComponentData<StartInstantiateComponent>(e);
             Translation translation = manager.GetComponentData<Translation>(e);
             Rotation rotation = manager.GetComponentData<Rotation>(e);
@@ -154,6 +154,7 @@ namespace TD
                 {
                     manager.AddComponentData(newEntity, new StartAnimationTag() { animationIndex = 0 });
                 }
+                manager.AddComponentData(newEntity, new MovableCollisionComponent() { collisionMap = mapRef });
             }
             else if(hasbarrel)
             {
@@ -167,19 +168,15 @@ namespace TD
             }
             else if (hasTower)
             {
-                TowerComponent tower = manager.GetComponentData<TowerComponent>(newEntity);
-                tower.isActive = startTower.isActive;
-                manager.SetComponentData(newEntity, tower);
-
                 //set tower properties
                 SearchPlayerComponent sp = manager.GetComponentData<SearchPlayerComponent>(newEntity);
                 StartTowerIdentifierComponent towerData = manager.GetComponentData<StartTowerIdentifierComponent>(e);
 
+                TowerComponent tower = manager.GetComponentData<TowerComponent>(newEntity);
+                tower.isActive = startTower.isActive;
                 Random towerRandom = new Random((uint)towerData.towerIndex);
-                manager.SetComponentData(newEntity, new RandomComponent()
-                {
-                    random = towerRandom
-                });
+                tower.random = towerRandom;
+                manager.SetComponentData(newEntity, tower);
 
                 sp.visibleDistance = towerData.visibleDistance;
                 sp.searchAngle = towerData.searchAngle;
@@ -188,7 +185,7 @@ namespace TD
                 sp.angle = a;
 
                 manager.SetComponentData(newEntity, sp);
-
+                manager.AddComponentData(newEntity, new MovableCollisionComponent() { collisionMap = mapRef});
             }
             else if(hasSwitcher)
             {
@@ -223,7 +220,7 @@ namespace TD
         protected override void OnUpdate()
         {
             EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
-            ref CollisionMapBlobAsset map = ref GetSingleton<CollisionMap>().collisionMap.Value;
+            BlobAssetReference<CollisionMapBlobAsset> mapRef = GetSingleton<CollisionMap>().collisionMap;
 
             //for simply dynamic instantiated objects
             Entities.
@@ -250,18 +247,17 @@ namespace TD
             for(int g = 0; g < gates.Length; g++)
             {
                 Entity e = gates[g];
-                ItemProcess(e, ref map);
+                ItemProcess(e, mapRef);
 
                 cmdBuffer.DestroyEntity(e);
             }
-            //}).Run();
             gates.Dispose();
 
             NativeArray<Entity> barrels = barrelsStartGroup.ToEntityArray(Allocator.TempJob);
             for (int b = 0; b < barrels.Length; b++)
             {
                 Entity e = barrels[b];
-                ItemProcess(e, ref map);
+                ItemProcess(e, mapRef);
 
                 cmdBuffer.DestroyEntity(e);
             }
@@ -271,7 +267,7 @@ namespace TD
             for (int t = 0; t < towers.Length; t++)
             {
                 Entity e = towers[t];
-                Entity newEntity = ItemProcess(e, ref map);
+                Entity newEntity = ItemProcess(e, mapRef);
 
                 cmdBuffer.DestroyEntity(e);
             }
@@ -281,7 +277,7 @@ namespace TD
             for (int s = 0; s < switchers.Length; s++)
             {
                 Entity e = switchers[s];
-                Entity newEntity = ItemProcess(e, ref map);
+                Entity newEntity = ItemProcess(e, mapRef);
 
                 cmdBuffer.DestroyEntity(e);
             }
@@ -291,7 +287,7 @@ namespace TD
             for (int a = 0; a < ammoms.Length; a++)
             {
                 Entity e = ammoms[a];
-                Entity newEntity = ItemProcess(e, ref map);
+                Entity newEntity = ItemProcess(e, mapRef);
 
                 cmdBuffer.DestroyEntity(e);
             }
@@ -301,7 +297,7 @@ namespace TD
             for (int e = 0; e < exits.Length; e++)
             {
                 Entity exit = exits[e];
-                Entity newEntity = ItemProcess(exit, ref map);
+                Entity newEntity = ItemProcess(exit, mapRef);
 
                 cmdBuffer.DestroyEntity(exit);
             }

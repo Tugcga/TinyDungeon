@@ -1,6 +1,6 @@
 ### Description
 
-This is a project on an early WIP stage. Repository contains implementation of some basic gameplay mechanics. Based on Unity Tiny framework. This framework allows to create games in pure DOTS, and use Monobehaviour only for converting purposes. The version of Tiny is 0.31.
+This is a project on an early WIP stage. Repository contains implementation of some basic gameplay mechanics. Based on Unity Tiny framework. This framework allows to create games in pure DOTS, and use Monobehaviour only for converting purposes. The version of Tiny is 0.32.
 
 ### Implementated gamplay features
 
@@ -30,8 +30,9 @@ This is a project on an early WIP stage. Repository contains implementation of s
 
 ### Known issues
 
-* The shadows are rendered with artifacts.
-* Crashes in builds, builded with Burst enabled.
 * In WebGL build the looped sound is played after destroying parent entity.
+* If the component contains BlobAssetRefernce, then Entity field in this component does not works correctly (the manager say that the entity does not exists).
+* Dispose NativeArray inside bursted job crash development build.
 * Some crashes in a scene with many destroyed entities.
+* Crash when the level reload very quickly.
 * In WebGL build mouse position translated to canvas with respect to top-left corner of the window, but not to the canvas html-element.

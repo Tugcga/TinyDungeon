@@ -116,6 +116,7 @@ namespace TD
                             //before we destroy the entity, we should deactivate these edges
                             CollisionEdgesSetComponent indexes = manager.GetComponentData<CollisionEdgesSetComponent>(entity);
                             //process for all non-zero indexes
+                            //ERROR: may be here we change some data, but other entity access to the same data, and collision appears
                             map.Deactivate(indexes);
                         }
                         cmdBuffer.DestroyEntity(entity);

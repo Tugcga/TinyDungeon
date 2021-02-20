@@ -23,7 +23,7 @@ namespace TD
             gatesGroup = manager.CreateEntityQuery(typeof(GateComponent), typeof(CollisionEdgesSetComponent));
             bulletGroup = manager.CreateEntityQuery(typeof(BulletComponent), typeof(LineMoveComponent), ComponentType.Exclude<DestroyBulletTag>(), ComponentType.Exclude<LineMoveInitTag>());
 
-            RequireSingletonForUpdate<CollisionMap>();
+            //RequireSingletonForUpdate<CollisionMap>();
             RequireSingletonForUpdate<KeyboardInputComponent>();
         }
 
@@ -55,14 +55,15 @@ namespace TD
 
                 //next iterate throw all switchers and find the close to the player
                 double time = Time.ElapsedTime;
-                CollisionMap map = GetSingleton<CollisionMap>();
+                //CollisionMap map = GetSingleton<CollisionMap>();
                 bool updateBullets = false;
 
                 EntityCommandBuffer cmdBuffer = new EntityCommandBuffer(Allocator.Temp);
-                Entities.ForEach((Entity entity, ref GateSwitcherComponent switcher, in PlayerPositionComponent playerPos, in Translation swCenter) =>
+                Entities.ForEach((Entity entity, ref GateSwitcherComponent switcher, ref MovableCollisionComponent collision, in PlayerPositionComponent playerPos, in Translation swCenter) =>
                 {
                     if (switcher.isActive && time - switcher.lastActionTime > switcher.actionCooldawn && playerPos.isActive && math.distancesq(playerPos.position, new float2(swCenter.Value.x, swCenter.Value.z)) < switcher.radius * switcher.radius)
                     {
+                        ref CollisionMapBlobAsset collisiosnAsset = ref collision.collisionMap.Value;
                         switcher.lastActionTime = time;
 
                         //next iterate by gates with the given color
@@ -82,11 +83,11 @@ namespace TD
                                 //and disable the collision edges
                                 if (currentGate.gate.isActive)
                                 {
-                                    map.collisionMap.Value.Deactivate(currentGate.indexes);
+                                    collisiosnAsset.Deactivate(currentGate.indexes);
                                 }
                                 else
                                 {
-                                    map.collisionMap.Value.Activate(currentGate.indexes);
+                                    collisiosnAsset.Activate(currentGate.indexes);
                                 }
                                 currentGate.gate.isActive = !currentGate.gate.isActive;
                                 cmdBuffer.SetComponent(currentGate.entity, currentGate.gate);
