@@ -36,3 +36,5 @@ This is a project on an early WIP stage. Repository contains implementation of s
 * Some crashes in a scene with many destroyed entities.
 * Crash when the level reload very quickly.
 * In WebGL build mouse position translated to canvas with respect to top-left corner of the window, but not to the canvas html-element.
+* Cyclic sound of the footsteps played only one second, and then fade out.
+* Alarm sound on towers plays also after the tower is destroyed. Although before destroying this sound is stopped.
